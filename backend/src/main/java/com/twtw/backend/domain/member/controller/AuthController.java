@@ -3,8 +3,11 @@ package com.twtw.backend.domain.member.controller;
 import com.twtw.backend.domain.member.dto.request.MemberSaveRequest;
 import com.twtw.backend.domain.member.dto.request.OAuthRequest;
 import com.twtw.backend.domain.member.dto.request.TokenRequest;
+import com.twtw.backend.domain.member.dto.response.AfterLoginDto;
 import com.twtw.backend.domain.member.dto.response.TokenDto;
 import com.twtw.backend.domain.member.service.AuthService;
+
+import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,27 +23,28 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenDto> authorize(@RequestBody TokenRequest tokenRequest) {
+    public ResponseEntity<TokenDto> authorize(@RequestBody @Valid TokenRequest tokenRequest) {
         return ResponseEntity.ok(
                 authService.refreshToken(
                         tokenRequest.getAccessToken(), tokenRequest.getRefreshToken()));
     }
 
     @PostMapping("/save")
-    public ResponseEntity<TokenDto> saveMember(@RequestBody MemberSaveRequest memberSaveRequest) {
-        TokenDto tokenDto = authService.saveMember(memberSaveRequest);
+    public ResponseEntity<AfterLoginDto> saveMember(
+            @RequestBody @Valid MemberSaveRequest memberSaveRequest) {
+        AfterLoginDto tokenDto = authService.saveMember(memberSaveRequest);
 
         return ResponseEntity.status(HttpStatus.OK).body(tokenDto);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<TokenDto> afterSocialLogin(@RequestBody OAuthRequest request) {
-        TokenDto tokenDto = authService.getTokenByOAuth(request);
+    @GetMapping("/validate")
+    public ResponseEntity<Void> validate() {
+        return ResponseEntity.noContent().build();
+    }
 
-        if (tokenDto == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(tokenDto);
-        } else {
-            return ResponseEntity.status(HttpStatus.OK).body(tokenDto);
-        }
+    @PostMapping("/login")
+    public ResponseEntity<AfterLoginDto> afterSocialLogin(
+            @RequestBody @Valid OAuthRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(authService.getTokenByOAuth(request));
     }
 }

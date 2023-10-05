@@ -3,19 +3,26 @@ package com.twtw.backend.domain.member.service;
 import com.twtw.backend.config.security.jwt.TokenProvider;
 import com.twtw.backend.domain.member.dto.request.MemberSaveRequest;
 import com.twtw.backend.domain.member.dto.request.OAuthRequest;
+import com.twtw.backend.domain.member.dto.response.AfterLoginDto;
 import com.twtw.backend.domain.member.dto.response.TokenDto;
+import com.twtw.backend.domain.member.entity.AuthStatus;
 import com.twtw.backend.domain.member.entity.Member;
 import com.twtw.backend.domain.member.entity.RefreshToken;
+import com.twtw.backend.domain.member.exception.RefreshTokenInfoMissMatchException;
+import com.twtw.backend.domain.member.exception.RefreshTokenValidationException;
 import com.twtw.backend.domain.member.mapper.MemberMapper;
 import com.twtw.backend.domain.member.repository.MemberRepository;
 import com.twtw.backend.domain.member.repository.RefreshTokenRepository;
+import com.twtw.backend.global.exception.EntityNotFoundException;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -44,7 +51,7 @@ public class AuthService {
      * */
 
     @Transactional
-    public TokenDto saveMember(MemberSaveRequest request) {
+    public AfterLoginDto saveMember(MemberSaveRequest request) {
         Member member = memberMapper.toMemberEntity(request);
 
         String clientId = request.getOauthRequest().getToken();
@@ -56,7 +63,7 @@ public class AuthService {
         UsernamePasswordAuthenticationToken credit = tokenProvider.makeCredit(member);
         TokenDto tokenDto = saveRefreshToken(credit, member.getId().toString());
 
-        return tokenDto;
+        return new AfterLoginDto(AuthStatus.SIGNIN, tokenDto);
     }
 
     /*
@@ -64,7 +71,7 @@ public class AuthService {
      * 2.JWT 토큰 발급 -> OAuth 정보 (clientId , AuthType)으로 진행
      *
      * */
-    public TokenDto getTokenByOAuth(OAuthRequest request) {
+    public AfterLoginDto getTokenByOAuth(OAuthRequest request) {
         String clientId = request.getToken();
 
         Optional<Member> member =
@@ -74,10 +81,10 @@ public class AuthService {
             Member curMember = member.get();
             UsernamePasswordAuthenticationToken credit = tokenProvider.makeCredit(curMember);
             TokenDto tokenDto = saveRefreshToken(credit, curMember.getId().toString());
-            return tokenDto;
+            return new AfterLoginDto(AuthStatus.SIGNIN, tokenDto);
         }
 
-        return null;
+        return new AfterLoginDto(AuthStatus.SIGNUP, null);
     }
 
     /*
@@ -89,7 +96,7 @@ public class AuthService {
 
     public TokenDto refreshToken(String accessToken, String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
+            throw new RefreshTokenValidationException();
         }
 
         Authentication authentication = tokenProvider.getAuthentication(accessToken);
@@ -97,7 +104,7 @@ public class AuthService {
         String userName = authentication.getName();
 
         if (!getRefreshTokenValue(userName).equals(refreshToken)) {
-            throw new RuntimeException("Refresh Token 정보가 일치하지 않습니다.");
+            throw new RefreshTokenInfoMissMatchException();
         }
 
         return saveRefreshToken(authentication, userName);
@@ -112,5 +119,19 @@ public class AuthService {
         refreshTokenRepository.save(new RefreshToken(userName, token.getRefreshToken()));
 
         return token;
+    }
+
+    public Member getMemberByJwt() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        UUID id = UUID.fromString(authentication.getName());
+
+        Optional<Member> member = memberRepository.findById(id);
+
+        if (member.isPresent()) {
+            return member.get();
+        }
+
+        throw new EntityNotFoundException();
     }
 }

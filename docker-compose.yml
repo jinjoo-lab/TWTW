@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - 8080:8080
+    networks:
+      - backend
+    depends_on:
+      - db
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      SCHEMA: ${SCHEMA}
+      SPRING_PROFILES_ACTIVE: prod
+    restart: always
+    tty: true
+
+  db:
+    image: mariadb:10
+    container_name: db
+    ports:
+      - 3306:3306
+    env_file: .env
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - data_db:/var/lib/mysql
+    networks:
+      - backend
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    entrypoint: >
+      /bin/bash -c "
+        rabbitmq-server &
+        sleep 10 && rabbitmq-plugins enable rabbitmq_web_stomp &
+        tail -f /dev/null
+      "
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - 5672:5672
+      - 15672:15672
+      - 61613:61613
+    volumes:
+      - data_rabbitmq:/rabbitmq
+    networks:
+      - backend
+    restart: always
+    tty: true
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+    restart: always
+    tty: true
+
+networks:
+  backend:
+
+volumes:
+  data_rabbitmq: null
+  data_db: null

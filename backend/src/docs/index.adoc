@@ -7,3 +7,8 @@
 
 = TWTW API
 HongDamJin
+
+include::auth.adoc[]
+include::path.adoc[]
+include::plan.adoc[]
+include::place.adoc[]

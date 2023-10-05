@@ -1,0 +1,31 @@
+server:
+  servlet:
+    context-path: /api/v1
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${MYSQL_HOST}:${MYSQL_PORT}/${SCHEMA}?serverTimezone=Asia/Seoul
+    username: ${MYSQL_USER}
+    password: ${MYSQL_ROOT_PASSWORD}
+  jpa:
+    database: mysql
+    generate-ddl: true
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+  main:
+    allow-bean-definition-overriding: true
+  config:
+    import:
+      - classpath:application-env.yml
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+  cache:
+    type: redis
+    redis:
+      cache-null-values: true
+  data:
+    redis:
+      host: redis
+      port: 6379
