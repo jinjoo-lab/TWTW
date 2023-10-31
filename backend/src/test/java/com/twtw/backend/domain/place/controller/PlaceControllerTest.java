@@ -3,7 +3,6 @@ package com.twtw.backend.domain.place.controller;
 import static com.twtw.backend.support.docs.ApiDocsUtils.getDocumentRequest;
 import static com.twtw.backend.support.docs.ApiDocsUtils.getDocumentResponse;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
@@ -65,11 +64,9 @@ class PlaceControllerTest extends RestDocsTest {
         final ResultActions perform =
                 mockMvc.perform(
                         get("/places/surround")
-                                .queryParam("query", "이디야 안성")
                                 .queryParam("x", "127.426")
                                 .queryParam("y", "37.0764")
                                 .queryParam("page", "1")
-                                .queryParam("categoryGroupCode", "CE7")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(
                                         "Authorization",
