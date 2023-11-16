@@ -2,8 +2,7 @@ version: "3"
 
 services:
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     container_name: backend
     ports:
       - 8080:8080
@@ -11,14 +10,7 @@ services:
       - backend
     depends_on:
       - db
-    environment:
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      SPRING_PROFILES_ACTIVE: prod
+    env_file: .env
     restart: always
     tty: true
 
@@ -45,9 +37,7 @@ services:
         sleep 10 && rabbitmq-plugins enable rabbitmq_web_stomp &
         tail -f /dev/null
       "
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    env_file: .env
     ports:
       - 5672:5672
       - 15672:15672
@@ -75,6 +65,26 @@ services:
     ports:
       - 80:80
     restart: always
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: on-failure
+    ports:
+      - 9090:9090
+    networks:
+      - backend
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: on-failure
+    ports:
+      - 3000:3000
     networks:
       - backend
 
