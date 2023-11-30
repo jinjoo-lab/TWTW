@@ -20,6 +20,7 @@ import com.twtw.backend.global.exception.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -103,12 +104,23 @@ public class GroupService {
     public GroupInfoResponse inviteGroup(InviteGroupRequest inviteGroupRequest) {
         Group group = getGroupEntity(inviteGroupRequest.getGroupId());
         Member friend = memberService.getMemberById(inviteGroupRequest.getFriendMemberId());
-        GroupMember connection = groupMapper.connectGroupMember(group, friend);
+        groupMapper.connectGroupMember(group, friend);
 
         return groupMapper.toGroupInfo(group);
     }
 
     public GroupInfoResponse getGroupInfoResponse(Group group) {
         return groupMapper.toGroupInfo(group);
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupInfoResponse> getMyGroups() {
+        Member loginMember = authService.getMemberByJwt();
+
+        if (loginMember.getGroupMembers().isEmpty()) {
+            return List.of();
+        }
+
+        return groupMapper.toMyGroupsInfo(loginMember.getGroupMembers());
     }
 }

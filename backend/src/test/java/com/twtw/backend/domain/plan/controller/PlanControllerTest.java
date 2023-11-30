@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.member.dto.response.MemberResponse;
-import com.twtw.backend.domain.place.entity.CategoryGroupCode;
 import com.twtw.backend.domain.plan.dto.client.PlaceDetails;
 import com.twtw.backend.domain.plan.dto.request.PlanMemberRequest;
 import com.twtw.backend.domain.plan.dto.request.SavePlanRequest;
@@ -49,22 +48,14 @@ class PlanControllerTest extends RestDocsTest {
                         List.of(
                                 new PlaceDetails(
                                         "이디야커피 안성죽산점",
-                                        435,
                                         "http://place.map.kakao.com/1562566188",
-                                        "음식점 > 카페 > 커피전문점 > 이디야커피",
-                                        "경기 안성시 죽산면 죽산리 118-3",
                                         "경기 안성시 죽산면 죽주로 287-1",
-                                        CategoryGroupCode.CE7,
                                         127.426865189637,
                                         37.0764635355795),
                                 new PlaceDetails(
                                         "카페 온마이마인드",
-                                        345,
                                         "https://place.map.kakao.com/1625295668",
-                                        "음식점 > 카페",
-                                        "경기 안성시 죽산면 죽산리 414",
                                         "경기 안성시 죽산면 죽산초교길 36-4",
-                                        CategoryGroupCode.CE7,
                                         127.420430538256,
                                         37.0766874564297)),
                         false);
@@ -75,8 +66,8 @@ class PlanControllerTest extends RestDocsTest {
                 mockMvc.perform(
                         get("/plans/search/destination")
                                 .queryParam("query", "이디야 안성")
-                                .queryParam("x", "127.426")
-                                .queryParam("y", "37.0764")
+                                .queryParam("longitude", "127.426")
+                                .queryParam("latitude", "37.0764")
                                 .queryParam("page", "1")
                                 .queryParam("categoryGroupCode", "CE7")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -116,12 +107,8 @@ class PlanControllerTest extends RestDocsTest {
                                                         UUID.randomUUID(),
                                                         new PlaceDetails(
                                                                 "카페 온마이마인드",
-                                                                345,
                                                                 "https://place.map.kakao.com/1625295668",
-                                                                "음식점 > 카페",
-                                                                "경기 안성시 죽산면 죽산리 414",
                                                                 "경기 안성시 죽산면 죽산초교길 36-4",
-                                                                CategoryGroupCode.CE7,
                                                                 127.420430538256,
                                                                 37.0766874564297))))
                                 .header(
@@ -145,14 +132,11 @@ class PlanControllerTest extends RestDocsTest {
                 new PlanInfoResponse(
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        UUID.randomUUID(),
                         new PlaceDetails(
                                 "카페 온마이마인드",
-                                345,
                                 "https://place.map.kakao.com/1625295668",
-                                "음식점 > 카페",
-                                "경기 안성시 죽산면 죽산리 414",
                                 "경기 안성시 죽산면 죽산초교길 36-4",
-                                CategoryGroupCode.CE7,
                                 127.420430538256,
                                 37.0766874564297),
                         new GroupInfoResponse(
@@ -215,12 +199,8 @@ class PlanControllerTest extends RestDocsTest {
                                                         UUID.randomUUID(),
                                                         new PlaceDetails(
                                                                 "이디야커피 안성죽산점",
-                                                                435,
                                                                 "http://place.map.kakao.com/1562566188",
-                                                                "음식점 > 카페 > 커피전문점 > 이디야커피",
-                                                                "경기 안성시 죽산면 죽산리 118-3",
                                                                 "경기 안성시 죽산면 죽주로 287-1",
-                                                                CategoryGroupCode.CE7,
                                                                 127.426865189637,
                                                                 37.0764635355795))))
                                 .header(
@@ -254,5 +234,24 @@ class PlanControllerTest extends RestDocsTest {
         // docs
         perform.andDo(print())
                 .andDo(document("post out plan", getDocumentRequest(), getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("계획 전체 조회 API가 수행되는가")
+    void getPlans() throws Exception {
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        get("/plans")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isOk());
+
+        // docs
+        perform.andDo(print())
+                .andDo(document("get all plans", getDocumentRequest(), getDocumentResponse()));
     }
 }

@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.twtw.backend.domain.place.dto.response.PlaceResponse;
-import com.twtw.backend.domain.place.entity.CategoryGroupCode;
 import com.twtw.backend.domain.place.service.PlaceService;
 import com.twtw.backend.domain.plan.dto.client.PlaceDetails;
 import com.twtw.backend.support.docs.RestDocsTest;
@@ -39,22 +38,14 @@ class PlaceControllerTest extends RestDocsTest {
                         List.of(
                                 new PlaceDetails(
                                         "이디야커피 안성죽산점",
-                                        435,
                                         "http://place.map.kakao.com/1562566188",
-                                        "음식점 > 카페 > 커피전문점 > 이디야커피",
-                                        "경기 안성시 죽산면 죽산리 118-3",
                                         "경기 안성시 죽산면 죽주로 287-1",
-                                        CategoryGroupCode.CE7,
                                         127.426865189637,
                                         37.0764635355795),
                                 new PlaceDetails(
                                         "카페 온마이마인드",
-                                        345,
                                         "https://place.map.kakao.com/1625295668",
-                                        "음식점 > 카페",
-                                        "경기 안성시 죽산면 죽산리 414",
                                         "경기 안성시 죽산면 죽산초교길 36-4",
-                                        CategoryGroupCode.CE7,
                                         127.420430538256,
                                         37.0766874564297)),
                         false);
@@ -64,8 +55,8 @@ class PlaceControllerTest extends RestDocsTest {
         final ResultActions perform =
                 mockMvc.perform(
                         get("/places/surround")
-                                .queryParam("x", "127.426")
-                                .queryParam("y", "37.0764")
+                                .queryParam("longitude", "127.426")
+                                .queryParam("latitude", "37.0764")
                                 .queryParam("page", "1")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(

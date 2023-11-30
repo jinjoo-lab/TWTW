@@ -25,6 +25,7 @@ import com.twtw.backend.global.exception.EntityNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,17 +47,29 @@ public class PlanService {
 
     private final MapClient<SearchDestinationRequest, SearchDestinationResponse> destinationClient;
 
+    @Cacheable(
+            value = "planDestination",
+            key = "{#request}",
+            cacheManager = "cacheManager",
+            unless = "#result.results.size() <= 0")
     public PlanDestinationResponse searchPlanDestination(final SearchDestinationRequest request) {
+
         final SearchDestinationResponse response = requestMapClient(request);
-        return new PlanDestinationResponse(response.getDocuments(), response.getMeta().getIsEnd());
+        return planMapper.toPlanDestinationResponse(response);
     }
 
     private SearchDestinationResponse requestMapClient(final SearchDestinationRequest request) {
         final SearchDestinationResponse result = destinationClient.request(request);
-        if (result.getDocuments().isEmpty()) {
+        final List<PlaceDetails> documents = result.getDocuments();
+
+        if (hasNoSearchData(documents)) {
             return destinationClient.request(request.toNoDirectionRequest());
         }
         return result;
+    }
+
+    private boolean hasNoSearchData(final List<PlaceDetails> documents) {
+        return documents == null || documents.isEmpty();
     }
 
     public PlanResponse savePlan(final SavePlanRequest request) {
@@ -90,8 +103,7 @@ public class PlanService {
 
         List<MemberResponse> memberResponse = toMemberResponse(plan);
 
-        return new PlanInfoResponse(
-                plan.getId(), plan.getPlace().getId(), placeDetails, groupInfo, memberResponse);
+        return planMapper.toPlanInfoResponse(plan, placeDetails, groupInfo, memberResponse);
     }
 
     public void deletePlan(UUID id) {
@@ -99,12 +111,16 @@ public class PlanService {
     }
 
     private List<MemberResponse> toMemberResponse(Plan plan) {
-        return plan.getPlanMembers().stream()
-                .map(x -> memberService.getResponseByMember(x.getMember()))
-                .toList();
+        return memberService.getMemberResponses(plan);
     }
 
     private Plan getPlanEntity(UUID id) {
         return planRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+    }
+
+    public List<PlanInfoResponse> getPlans() {
+        final Member member = authService.getMemberByJwt();
+        final List<Plan> plans = planRepository.findAllByMember(member);
+        return planMapper.toPlanInfoResponses(plans);
     }
 }
