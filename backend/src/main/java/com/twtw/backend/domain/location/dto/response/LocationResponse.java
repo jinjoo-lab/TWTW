@@ -13,5 +13,6 @@ public class LocationResponse {
     private String nickname;
     private Double longitude;
     private Double latitude;
+    private AverageCoordinate averageCoordinate;
     private LocalDateTime time;
 }

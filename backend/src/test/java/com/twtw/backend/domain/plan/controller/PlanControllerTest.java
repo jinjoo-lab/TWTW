@@ -5,19 +5,21 @@ import static com.twtw.backend.support.docs.ApiDocsUtils.getDocumentResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.member.dto.response.MemberResponse;
-import com.twtw.backend.domain.plan.dto.client.PlaceDetails;
+import com.twtw.backend.domain.place.entity.CategoryGroupCode;
 import com.twtw.backend.domain.plan.dto.request.PlanMemberRequest;
 import com.twtw.backend.domain.plan.dto.request.SavePlanRequest;
+import com.twtw.backend.domain.plan.dto.request.UpdatePlanDayRequest;
+import com.twtw.backend.domain.plan.dto.request.UpdatePlanRequest;
+import com.twtw.backend.domain.plan.dto.response.PlaceDetails;
 import com.twtw.backend.domain.plan.dto.response.PlanDestinationResponse;
 import com.twtw.backend.domain.plan.dto.response.PlanInfoResponse;
 import com.twtw.backend.domain.plan.dto.response.PlanResponse;
@@ -31,6 +33,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -104,13 +108,18 @@ class PlanControllerTest extends RestDocsTest {
                                 .content(
                                         toRequestBody(
                                                 new SavePlanRequest(
+                                                        "약속이름",
                                                         UUID.randomUUID(),
+                                                        LocalDateTime.of(2023, 12, 25, 15, 30),
                                                         new PlaceDetails(
                                                                 "카페 온마이마인드",
                                                                 "https://place.map.kakao.com/1625295668",
                                                                 "경기 안성시 죽산면 죽산초교길 36-4",
                                                                 127.420430538256,
-                                                                37.0766874564297))))
+                                                                37.0766874564297),
+                                                        List.of(
+                                                                UUID.randomUUID(),
+                                                                UUID.randomUUID()))))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
@@ -133,6 +142,8 @@ class PlanControllerTest extends RestDocsTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        "약속이름",
+                        "2023-12-25 15:30",
                         new PlaceDetails(
                                 "카페 온마이마인드",
                                 "https://place.map.kakao.com/1625295668",
@@ -140,8 +151,19 @@ class PlanControllerTest extends RestDocsTest {
                                 127.420430538256,
                                 37.0766874564297),
                         new GroupInfoResponse(
-                                UUID.randomUUID(), UUID.randomUUID(), "홍담진", "http://someUrlToS3"),
-                        List.of(new MemberResponse(UUID.randomUUID(), "진호정")));
+                                UUID.randomUUID(),
+                                UUID.randomUUID(),
+                                "홍담진",
+                                "http://someUrlToS3",
+                                List.of(
+                                        new MemberResponse(
+                                                UUID.randomUUID(), "카즈하", "http://HJ39FaceCamera"),
+                                        new MemberResponse(
+                                                UUID.randomUUID(), "사쿠라", "http://HJ39FaceCam"))),
+                        List.of(new MemberResponse(UUID.randomUUID(), "진호정", "http://HJ39Face")),
+                        List.of(
+                                new MemberResponse(
+                                        UUID.randomUUID(), "진정Ho", "http://HJ39Camera")));
         given(planService.getPlanById(any())).willReturn(expected);
 
         // when
@@ -165,6 +187,9 @@ class PlanControllerTest extends RestDocsTest {
     @Test
     @DisplayName("단건 삭제 API가 수행되는가")
     void deletePlanById() throws Exception {
+        // given
+        willDoNothing().given(planService).deletePlan(any());
+
         // when
         final ResultActions perform =
                 mockMvc.perform(
@@ -182,34 +207,22 @@ class PlanControllerTest extends RestDocsTest {
     }
 
     @Test
-    @DisplayName("계획 참여 API가 수행되는가")
+    @DisplayName("계획 초대 API가 수행되는가")
     void joinPlan() throws Exception {
         // given
-        final PlanResponse expected = new PlanResponse(UUID.randomUUID(), UUID.randomUUID());
-        given(planService.joinPlan(any())).willReturn(expected);
+        willDoNothing().given(planService).joinPlan(any());
 
         // when
         final ResultActions perform =
                 mockMvc.perform(
                         post("/plans/join")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        toRequestBody(
-                                                new SavePlanRequest(
-                                                        UUID.randomUUID(),
-                                                        new PlaceDetails(
-                                                                "이디야커피 안성죽산점",
-                                                                "http://place.map.kakao.com/1562566188",
-                                                                "경기 안성시 죽산면 죽주로 287-1",
-                                                                127.426865189637,
-                                                                37.0764635355795))))
+                                .content(toRequestBody(new PlanMemberRequest(UUID.randomUUID())))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
         // then
-        perform.andExpect(status().isOk())
-                .andExpect(jsonPath("$.planId").isString())
-                .andExpect(jsonPath("$.groupId").isString());
+        perform.andExpect(status().isNoContent());
 
         // docs
         perform.andDo(print())
@@ -217,8 +230,58 @@ class PlanControllerTest extends RestDocsTest {
     }
 
     @Test
+    @DisplayName("계획 참여 API가 수행되는가")
+    void invitePlan() throws Exception {
+        // given
+        final PlanResponse expected = new PlanResponse(UUID.randomUUID(), UUID.randomUUID());
+        given(planService.invitePlan(any())).willReturn(expected);
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/plans/invite")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toRequestBody(new PlanMemberRequest(UUID.randomUUID())))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isOk());
+
+        // docs
+        perform.andDo(print())
+                .andDo(document("post invite plan", getDocumentRequest(), getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("계획 초대 삭제 API가 수행되는가")
+    void deleteInvite() throws Exception {
+        // given
+        willDoNothing().given(planService).deletePlan(any());
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        delete("/plans/invite")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toRequestBody(new PlanMemberRequest(UUID.randomUUID())))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isNoContent());
+
+        // docs
+        perform.andDo(print())
+                .andDo(document("delete plan invite", getDocumentRequest(), getDocumentResponse()));
+    }
+
+    @Test
     @DisplayName("계획 탈퇴 API가 수행되는가")
     void outPlan() throws Exception {
+        // given
+        willDoNothing().given(planService).outPlan(any());
+
         // when
         final ResultActions perform =
                 mockMvc.perform(
@@ -239,6 +302,82 @@ class PlanControllerTest extends RestDocsTest {
     @Test
     @DisplayName("계획 전체 조회 API가 수행되는가")
     void getPlans() throws Exception {
+        // given
+        final List<PlanInfoResponse> expected =
+                List.of(
+                        PlanInfoResponse.builder()
+                                .planId(UUID.randomUUID())
+                                .planMakerId(UUID.randomUUID())
+                                .placeId(UUID.randomUUID())
+                                .name("약속1")
+                                .planDay("2023-12-25 15:30")
+                                .placeDetails(
+                                        new PlaceDetails(
+                                                "카페 온마이마인드",
+                                                "https://place.map.kakao.com/1625295668",
+                                                "경기 안성시 죽산면 죽산초교길 36-4",
+                                                127.420430538256,
+                                                37.0766874564297))
+                                .groupInfo(
+                                        new GroupInfoResponse(
+                                                UUID.randomUUID(),
+                                                UUID.randomUUID(),
+                                                "홍담진",
+                                                "http://someUrlToS3",
+                                                List.of(
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "카즈하",
+                                                                "http://HJ39GOAT"),
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "사쿠라",
+                                                                "http://HJ39"))))
+                                .members(
+                                        List.of(
+                                                new MemberResponse(
+                                                        UUID.randomUUID(),
+                                                        "진호정",
+                                                        "http://HoJin39")))
+                                .build(),
+                        PlanInfoResponse.builder()
+                                .planId(UUID.randomUUID())
+                                .planMakerId(UUID.randomUUID())
+                                .placeId(UUID.randomUUID())
+                                .name("약속2")
+                                .planDay("2023-12-25 15:30")
+                                .placeDetails(
+                                        new PlaceDetails(
+                                                "카페 온마이마인드",
+                                                "https://place.map.kakao.com/1625295668",
+                                                "경기 안성시 죽산면 죽산초교길 36-4",
+                                                127.420430538256,
+                                                37.0766874564297))
+                                .groupInfo(
+                                        new GroupInfoResponse(
+                                                UUID.randomUUID(),
+                                                UUID.randomUUID(),
+                                                "HongDamJin",
+                                                "http://someUrlToS3",
+                                                List.of(
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "카즈하",
+                                                                "http://HJ39"),
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "사쿠라",
+                                                                "http://HJ39"))))
+                                .members(
+                                        List.of(
+                                                new MemberResponse(
+                                                        UUID.randomUUID(),
+                                                        "JinHoJeong",
+                                                        "http://HJ39")))
+                                .build());
+
+        given(planService.getPlans()).willReturn(expected);
+
         // when
         final ResultActions perform =
                 mockMvc.perform(
@@ -253,5 +392,77 @@ class PlanControllerTest extends RestDocsTest {
         // docs
         perform.andDo(print())
                 .andDo(document("get all plans", getDocumentRequest(), getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("계획 날짜 업데이트 API가 수행되는가")
+    void updatePlanDay() throws Exception {
+        // given
+        willDoNothing().given(planService).updatePlanDay(any());
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/plans/day")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        toRequestBody(
+                                                new UpdatePlanDayRequest(
+                                                        UUID.randomUUID(),
+                                                        LocalDateTime.of(2023, 12, 25, 13, 30))))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isNoContent());
+
+        // docs
+        perform.andDo(print())
+                .andDo(
+                        document(
+                                "post update plan day",
+                                getDocumentRequest(),
+                                getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("계획 장소 업데이트 API가 수행되는가")
+    void updatePlan() throws Exception {
+        // given
+        willDoNothing().given(planService).updatePlan(any());
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/plans/update")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        toRequestBody(
+                                                new UpdatePlanRequest(
+                                                        UUID.randomUUID(),
+                                                        LocalDateTime.parse(
+                                                                LocalDateTime.now()
+                                                                        .format(formatter),
+                                                                formatter),
+                                                        "약속명",
+                                                        "별다방",
+                                                        "http://place.map.kakao.com/1562566188",
+                                                        CategoryGroupCode.CE7,
+                                                        "경기 안성시 죽산면 죽주로 287-1",
+                                                        127.426865189637,
+                                                        37.0764635355795,
+                                                        List.of(
+                                                                UUID.randomUUID(),
+                                                                UUID.randomUUID()))))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isNoContent());
+
+        // docs
+        perform.andDo(print())
+                .andDo(document("post update plan", getDocumentRequest(), getDocumentResponse()));
     }
 }

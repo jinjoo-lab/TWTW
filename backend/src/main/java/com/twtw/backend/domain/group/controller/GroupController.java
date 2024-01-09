@@ -1,8 +1,7 @@
 package com.twtw.backend.domain.group.controller;
 
-import com.twtw.backend.domain.group.dto.request.InviteGroupRequest;
-import com.twtw.backend.domain.group.dto.request.JoinGroupRequest;
-import com.twtw.backend.domain.group.dto.request.MakeGroupRequest;
+import com.twtw.backend.domain.group.dto.request.*;
+import com.twtw.backend.domain.group.dto.request.DeleteGroupInviteRequest;
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.group.dto.response.ShareInfoResponse;
 import com.twtw.backend.domain.group.dto.response.SimpleGroupInfoResponse;
@@ -46,9 +45,22 @@ public class GroupController {
         return ResponseEntity.ok(groupService.inviteGroup(inviteGroupRequest));
     }
 
+    @DeleteMapping("/invite")
+    public ResponseEntity<Void> deleteInvite(
+            @RequestBody DeleteGroupInviteRequest deleteGroupInviteRequest) {
+        groupService.deleteInvite(deleteGroupInviteRequest);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/share/{id}")
-    public ResponseEntity<Void> changeShare(@PathVariable UUID id) {
-        groupService.changeShare(id);
+    public ResponseEntity<Void> shareLocation(@PathVariable UUID id) {
+        groupService.shareLocation(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/unshare/{id}")
+    public ResponseEntity<Void> unShareLocation(@PathVariable UUID id) {
+        groupService.unShareLocation(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -57,8 +69,21 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getShare(id));
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<GroupInfoResponse>> getMyGroups() {
         return ResponseEntity.ok(groupService.getMyGroups());
+    }
+
+    @PostMapping("location")
+    public ResponseEntity<Void> updateLocation(
+            @RequestBody final UpdateLocationRequest updateLocationRequest) {
+        groupService.updateLocation(updateLocationRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("out")
+    public ResponseEntity<Void> outGroup(@RequestBody final OutGroupRequest outGroupRequest) {
+        groupService.outGroup(outGroupRequest);
+        return ResponseEntity.noContent().build();
     }
 }

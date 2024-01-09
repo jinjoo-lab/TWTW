@@ -23,6 +23,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,13 +53,18 @@ class PlanServiceTest extends LoginTest {
     @DisplayName("계획 저장이 수행되는가")
     void savePlan() {
         // given
-        final UUID groupId = groupRepository.save(GroupEntityFixture.HDJ_GROUP.toEntity()).getId();
+        final UUID groupId =
+                groupRepository.save(GroupEntityFixture.HDJ_GROUP.toEntity(loginUser)).getId();
 
         // when
         final PlanResponse planResponse =
                 planService.savePlan(
                         new SavePlanRequest(
-                                groupId, PlaceDetailsFixture.FIRST_PLACE.toPlaceDetails()));
+                                "모임명",
+                                groupId,
+                                LocalDateTime.of(2023, 12, 25, 15, 30),
+                                PlaceDetailsFixture.FIRST_PLACE.toPlaceDetails(),
+                                List.of(UUID.randomUUID())));
 
         // then
         final Optional<Plan> result = planRepository.findById(planResponse.getPlanId());
@@ -72,13 +79,17 @@ class PlanServiceTest extends LoginTest {
         final Plan plan =
                 planRepository.save(
                         new Plan(
+                                "모임명",
                                 member,
                                 PlaceEntityFixture.FIRST_PLACE.toEntity(),
-                                GroupEntityFixture.BTS_GROUP.toEntity()));
+                                GroupEntityFixture.BTS_GROUP.toEntity(loginUser),
+                                LocalDateTime.of(2023, 12, 25, 15, 30)));
         final UUID planId = plan.getId();
 
         // when
-        planService.joinPlan(new PlanMemberRequest(planId));
+        planService.invitePlan(new PlanMemberRequest(planId));
+        plan.acceptInvite(loginUser);
+        plan.acceptInvite(member);
 
         // then
         final Plan result = planRepository.findById(planId).orElseThrow();
@@ -89,7 +100,11 @@ class PlanServiceTest extends LoginTest {
     @DisplayName("계획 나가기가 수행되는가") // TODO: 계획에 1명 있는데 나가는 경우 생각해보기
     void outPlan() {
         // given
-        final Plan plan = PlanEntityFixture.SECOND_PLACE.toEntity(loginUser);
+        final Plan plan =
+                PlanEntityFixture.SECOND_PLACE.toEntity(
+                        loginUser,
+                        GroupEntityFixture.HDJ_GROUP.toEntity(loginUser),
+                        LocalDateTime.of(2023, 12, 25, 13, 30));
         final UUID planId = planRepository.save(plan).getId();
 
         // when
@@ -108,9 +123,11 @@ class PlanServiceTest extends LoginTest {
                 planRepository
                         .save(
                                 new Plan(
+                                        "모임명",
                                         loginUser,
                                         PlaceEntityFixture.SECOND_PLACE.toEntity(),
-                                        GroupEntityFixture.HDJ_GROUP.toEntity()))
+                                        GroupEntityFixture.HDJ_GROUP.toEntity(loginUser),
+                                        LocalDateTime.of(2023, 12, 25, 15, 30)))
                         .getId();
 
         // when
@@ -128,9 +145,11 @@ class PlanServiceTest extends LoginTest {
                 planRepository
                         .save(
                                 new Plan(
+                                        "모임명",
                                         loginUser,
                                         PlaceEntityFixture.SECOND_PLACE.toEntity(),
-                                        GroupEntityFixture.HDJ_GROUP.toEntity()))
+                                        GroupEntityFixture.HDJ_GROUP.toEntity(loginUser),
+                                        LocalDateTime.of(2023, 12, 25, 15, 30)))
                         .getId();
 
         // when

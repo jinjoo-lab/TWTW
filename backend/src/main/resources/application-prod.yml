@@ -31,6 +31,8 @@ spring:
     redis:
       host: redis
       port: 6379
+  jackson:
+    default-property-inclusion: non_null
 management:
   endpoints:
     web:
@@ -51,3 +53,5 @@ naver-map:
 tmap:
   app-key: ${TMAP_KEY}
   url: ${TMAP_URL}
+firebase:
+  location: ${FIREBASE_LOCATION}

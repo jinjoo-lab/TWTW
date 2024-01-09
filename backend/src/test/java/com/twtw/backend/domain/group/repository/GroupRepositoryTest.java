@@ -17,6 +17,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @DisplayName("GroupRepository의")
 class GroupRepositoryTest extends RepositoryTest {
 
@@ -33,21 +36,20 @@ class GroupRepositoryTest extends RepositoryTest {
         Member member1 = memberRepository.save(MemberEntityFixture.FIRST_MEMBER.toEntity());
         Member member2 = memberRepository.save(MemberEntityFixture.SECOND_MEMBER.toEntity());
 
-        Group group = GroupEntityFixture.BTS_GROUP.toEntity();
+        Group group = GroupEntityFixture.BTS_GROUP.toEntity(member1);
 
-        GroupMember groupMember1 = new GroupMember(group, member1);
-        GroupMember groupMember2 = new GroupMember(group, member2);
+        group.inviteAll(List.of(member2));
 
         Place place = PlaceEntityFixture.FIRST_PLACE.toEntity();
 
-        Plan plan = new Plan(member1, place, group);
+        Plan plan = new Plan("모임명", member1, place, group, LocalDateTime.of(2023, 12, 25, 13, 30));
         plan.addMember(member2);
 
         // when
         final Group saveGroup = groupRepository.save(group);
 
         // then
-        assertThat(saveGroup.getGroupMembers().size()).isEqualTo(2);
+        assertThat(saveGroup.getGroupMembers()).hasSize(1);
     }
 
     @Test
@@ -57,9 +59,8 @@ class GroupRepositoryTest extends RepositoryTest {
         Member member1 = memberRepository.save(MemberEntityFixture.FIRST_MEMBER.toEntity());
         Member member2 = memberRepository.save(MemberEntityFixture.SECOND_MEMBER.toEntity());
 
-        Group group = GroupEntityFixture.BTS_GROUP.toEntity();
+        Group group = GroupEntityFixture.BTS_GROUP.toEntity(member1);
 
-        GroupMember groupMember1 = new GroupMember(group, member1);
         GroupMember groupMember2 = new GroupMember(group, member2);
 
         final Group saveGroup = groupRepository.save(group);
@@ -80,20 +81,19 @@ class GroupRepositoryTest extends RepositoryTest {
         Member member1 = memberRepository.save(MemberEntityFixture.FIRST_MEMBER.toEntity());
         Member member2 = memberRepository.save(MemberEntityFixture.SECOND_MEMBER.toEntity());
 
-        Group group = GroupEntityFixture.BTS_GROUP.toEntity();
+        Group group = GroupEntityFixture.BTS_GROUP.toEntity(member1);
 
-        GroupMember groupMember1 = new GroupMember(group, member1);
-        GroupMember groupMember2 = new GroupMember(group, member2);
+        new GroupMember(group, member2);
 
         Place place = PlaceEntityFixture.FIRST_PLACE.toEntity();
 
-        Plan plan = new Plan(member1, place, group);
+        Plan plan = new Plan("모임명", member1, place, group, LocalDateTime.of(2023, 12, 25, 13, 30));
         plan.addMember(member2);
 
         // when
         final Group saveGroup = groupRepository.save(group);
 
         // then
-        assertThat(group.getGroupPlans().size()).isEqualTo(1);
+        assertThat(saveGroup.getGroupPlans()).hasSize(1);
     }
 }

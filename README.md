@@ -34,7 +34,13 @@
 
 
 ## 시스템 아키텍처
-![image](https://github.com/HongDam-org/TWTW/assets/89020004/789ca2de-e360-4e63-8108-f18dfb1a1e60)
+![image](https://github.com/HongDam-org/TWTW/assets/89020004/27a64b72-85a5-44b8-ab49-eb97751271bc)
+
+## Cloud 아키텍처
+![TWTW](https://github.com/HongDam-org/TWTW/assets/89020004/fd2250c5-943b-445a-ae9f-e0b8526070b9)
+
+## DB ERD
+![image](https://github.com/HongDam-org/TWTW/assets/89020004/7fafa2f5-fdaf-4010-a788-d21729ac20d7)
 
 ## 사용 기술
 |iOS|Backend|Infra/DevOps|Etc|

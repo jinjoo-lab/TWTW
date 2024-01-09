@@ -35,11 +35,10 @@ public class SecurityConfig {
                                                 "auth/save",
                                                 "auth/login",
                                                 "member/duplicate/**",
-                                                "plan/**",
                                                 "actuator/**")
-                                        .permitAll())
-                .authorizeHttpRequests(
-                        x -> x.requestMatchers("/test/**").permitAll().anyRequest().authenticated())
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
                 .sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(

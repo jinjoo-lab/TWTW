@@ -1,5 +1,7 @@
 package com.twtw.backend.domain.group.entity;
 
+import com.twtw.backend.domain.group.exception.IllegalGroupMemberException;
+import com.twtw.backend.domain.member.entity.Member;
 import com.twtw.backend.domain.plan.entity.Plan;
 import com.twtw.backend.global.audit.AuditListener;
 import com.twtw.backend.global.audit.Auditable;
@@ -52,13 +54,67 @@ public class Group implements Auditable {
     @Column(nullable = false)
     private BaseTime baseTime;
 
-    public Group(String name, String groupImage, UUID leaderId) {
+    @Builder
+    public Group(final String name, final String groupImage, final Member leader) {
         this.name = name;
         this.groupImage = groupImage;
-        this.leaderId = leaderId;
+        this.leaderId = leader.getId();
+
+        final GroupMember groupMember = new GroupMember(this, leader);
+        this.groupMembers.add(groupMember);
+        groupMember.acceptInvite();
     }
 
-    public void addToGroup(final Plan plan) {
+    public void addPlan(final Plan plan) {
         this.groupPlans.add(plan);
+    }
+
+    public void inviteAll(final List<Member> friends) {
+        friends.forEach(friend -> addGroupMember(new GroupMember(this, friend)));
+    }
+
+    public List<GroupMember> getGroupMembers() {
+        return this.groupMembers.stream().filter(GroupMember::isAccepted).toList();
+    }
+
+    private void addGroupMember(final GroupMember groupMember) {
+        if (hasSameMember(groupMember)) {
+            return;
+        }
+        this.groupMembers.add(groupMember);
+    }
+
+    private boolean hasSameMember(final GroupMember groupMember) {
+        return this.groupMembers.stream()
+                .map(GroupMember::getMember)
+                .anyMatch(groupMember::isSameMember);
+    }
+
+    public void updateMemberLocation(
+            final Member member, final Double longitude, final Double latitude) {
+        final GroupMember groupMember = getGroupMember(member);
+        groupMember.updateCoordinate(longitude, latitude);
+    }
+
+    private GroupMember getGroupMember(final Member member) {
+        return this.groupMembers.stream()
+                .filter(groupMember -> groupMember.isSameMember(member))
+                .findAny()
+                .orElseThrow(IllegalGroupMemberException::new);
+    }
+
+    public void outGroup(final Member member) {
+        this.groupMembers.removeIf(groupMember -> groupMember.isSameMember(member));
+        if (hasNoLeader()) {
+            this.leaderId = this.groupMembers.get(0).getMember().getId();
+        }
+    }
+
+    private boolean hasNoLeader() {
+        return this.groupMembers.stream().noneMatch(GroupMember::isLeader);
+    }
+
+    public void deleteInvite(final Member member) {
+        this.groupMembers.removeIf(groupMember -> groupMember.isSameMember(member));
     }
 }

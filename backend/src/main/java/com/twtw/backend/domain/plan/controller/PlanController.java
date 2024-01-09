@@ -3,6 +3,8 @@ package com.twtw.backend.domain.plan.controller;
 import com.twtw.backend.domain.plan.dto.client.SearchDestinationRequest;
 import com.twtw.backend.domain.plan.dto.request.PlanMemberRequest;
 import com.twtw.backend.domain.plan.dto.request.SavePlanRequest;
+import com.twtw.backend.domain.plan.dto.request.UpdatePlanDayRequest;
+import com.twtw.backend.domain.plan.dto.request.UpdatePlanRequest;
 import com.twtw.backend.domain.plan.dto.response.PlanDestinationResponse;
 import com.twtw.backend.domain.plan.dto.response.PlanInfoResponse;
 import com.twtw.backend.domain.plan.dto.response.PlanResponse;
@@ -51,9 +53,21 @@ public class PlanController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/invite")
+    public ResponseEntity<PlanResponse> invitePlan(@RequestBody PlanMemberRequest request) {
+        return ResponseEntity.ok(planService.invitePlan(request));
+    }
+
+    @DeleteMapping("/invite")
+    public ResponseEntity<Void> deleteInvite(@RequestBody PlanMemberRequest request) {
+        planService.deleteInvite(request);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/join")
-    public ResponseEntity<PlanResponse> joinPlan(@RequestBody PlanMemberRequest request) {
-        return ResponseEntity.ok(planService.joinPlan(request));
+    public ResponseEntity<Void> joinPlan(@RequestBody PlanMemberRequest request) {
+        planService.joinPlan(request);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/out")
@@ -62,8 +76,20 @@ public class PlanController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/day")
+    public ResponseEntity<Void> updatePlanDay(@RequestBody final UpdatePlanDayRequest request) {
+        planService.updatePlanDay(request);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public ResponseEntity<List<PlanInfoResponse>> getPlans() {
         return ResponseEntity.ok(planService.getPlans());
+    }
+
+    @PostMapping("update")
+    public ResponseEntity<Void> updatePlan(@RequestBody final UpdatePlanRequest updatePlanRequest) {
+        planService.updatePlan(updatePlanRequest);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -2,7 +2,6 @@ package com.twtw.backend.domain.plan.dto.response;
 
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.member.dto.response.MemberResponse;
-import com.twtw.backend.domain.plan.dto.client.PlaceDetails;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +17,10 @@ public class PlanInfoResponse {
     private UUID planId;
     private UUID placeId;
     private UUID planMakerId;
+    private String name;
+    private String planDay;
     private PlaceDetails placeDetails;
     private GroupInfoResponse groupInfo;
     private List<MemberResponse> members;
+    private List<MemberResponse> notJoinedMembers;
 }

@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
     KakaoProperties.class,
     TmapProperties.class,
     RabbitMQProperties.class,
-    RedisProperties.class
+    RedisProperties.class,
+    StorageProperties.class,
+    FirebaseProperties.class
 })
 public class PropertiesConfig {}

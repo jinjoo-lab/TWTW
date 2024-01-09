@@ -5,27 +5,35 @@ import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.group.dto.response.ShareInfoResponse;
 import com.twtw.backend.domain.group.entity.Group;
 import com.twtw.backend.domain.group.entity.GroupMember;
+import com.twtw.backend.domain.member.dto.response.MemberResponse;
 import com.twtw.backend.domain.member.entity.Member;
 
-import org.mapstruct.*;
+import org.mapstruct.IterableMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
 
 import java.util.List;
-import java.util.UUID;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface GroupMapper {
-    @Mapping(target = "baseTime", ignore = true)
-    GroupMember connectGroupMember(Group group, Member member);
-
-    @Mapping(target = "baseTime", ignore = true)
-    @Mapping(target = "groupMembers", ignore = true)
-    @Mapping(target = "groupPlans", ignore = true)
     @Mapping(target = "name", source = "groupDto.name")
     @Mapping(target = "groupImage", source = "groupDto.groupImage")
-    @Mapping(target = "leaderId", source = "leaderId")
-    Group toGroupEntity(MakeGroupRequest groupDto, UUID leaderId);
+    Group toGroupEntity(MakeGroupRequest groupDto, Member leader);
+
+    @Named("groupMemberToMemberResponse")
+    @Mapping(target = "memberId", source = "groupMember.member.id")
+    @Mapping(target = "nickname", source = "groupMember.member.nickname")
+    @Mapping(target = "profileImage", source = "groupMember.member.profileImage")
+    MemberResponse toGroupMemberResponse(GroupMember groupMember);
+
+    @Named("groupMemberToMemberResponseList")
+    @IterableMapping(qualifiedByName = "groupMemberToMemberResponse")
+    List<MemberResponse> toGroupMemberResponseList(List<GroupMember> groupMemberList);
 
     @Mapping(target = "groupId", source = "id")
+    @Mapping(target = "groupMembers", qualifiedByName = "groupMemberToMemberResponseList")
     GroupInfoResponse toGroupInfo(Group group);
 
     @Mapping(target = "groupId", source = "group.id")

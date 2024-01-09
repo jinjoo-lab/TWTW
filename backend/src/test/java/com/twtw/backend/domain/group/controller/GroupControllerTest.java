@@ -5,20 +5,19 @@ import static com.twtw.backend.support.docs.ApiDocsUtils.getDocumentResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.twtw.backend.domain.group.dto.request.InviteGroupRequest;
-import com.twtw.backend.domain.group.dto.request.JoinGroupRequest;
-import com.twtw.backend.domain.group.dto.request.MakeGroupRequest;
+import com.twtw.backend.domain.group.dto.request.*;
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.group.dto.response.ShareInfoResponse;
 import com.twtw.backend.domain.group.dto.response.SimpleGroupInfoResponse;
 import com.twtw.backend.domain.group.service.GroupService;
+import com.twtw.backend.domain.member.dto.response.MemberResponse;
 import com.twtw.backend.support.docs.RestDocsTest;
 
 import org.junit.jupiter.api.DisplayName;
@@ -46,7 +45,12 @@ class GroupControllerTest extends RestDocsTest {
                         UUID.fromString("550e8400-e29b-41d4-a716-446655440000"),
                         UUID.randomUUID(),
                         "HDJ",
-                        "GROUP-IMAGE");
+                        "GROUP-IMAGE",
+                        List.of(
+                                new MemberResponse(
+                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie"),
+                                new MemberResponse(
+                                        UUID.randomUUID(), "ZION-T", "http://hojiniSelfie")));
         given(groupService.getGroupById(UUID.fromString("550e8400-e29b-41d4-a716-446655440000")))
                 .willReturn(expected);
 
@@ -72,7 +76,12 @@ class GroupControllerTest extends RestDocsTest {
                         UUID.fromString("550e8400-e29b-41d4-a716-446655440000"),
                         UUID.randomUUID(),
                         "HDJ",
-                        "GROUP-IMAGE");
+                        "GROUP-IMAGE",
+                        List.of(
+                                new MemberResponse(
+                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie"),
+                                new MemberResponse(
+                                        UUID.randomUUID(), "ZION-T", "http://hojiniSelfie")));
         given(groupService.makeGroup(any())).willReturn(expected);
 
         final ResultActions perform =
@@ -125,7 +134,15 @@ class GroupControllerTest extends RestDocsTest {
         // given
         final GroupInfoResponse expected =
                 new GroupInfoResponse(
-                        UUID.randomUUID(), UUID.randomUUID(), "홍담진", "http://someUrlToS3");
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        "홍담진",
+                        "http://someUrlToS3",
+                        List.of(
+                                new MemberResponse(
+                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie"),
+                                new MemberResponse(
+                                        UUID.randomUUID(), "ZION-T", "http://hojiniSelfie")));
         given(groupService.inviteGroup(any())).willReturn(expected);
 
         // when
@@ -136,7 +153,8 @@ class GroupControllerTest extends RestDocsTest {
                                 .content(
                                         toRequestBody(
                                                 new InviteGroupRequest(
-                                                        UUID.randomUUID(), UUID.randomUUID())))
+                                                        List.of(UUID.randomUUID()),
+                                                        UUID.randomUUID())))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
@@ -152,17 +170,19 @@ class GroupControllerTest extends RestDocsTest {
     }
 
     @Test
-    @DisplayName("위치 공유 수정 API가 수행되는가")
-    void changeShare() throws Exception {
+    @DisplayName("그룹 초대 삭제 API가 수행되는가")
+    void deleteInvite() throws Exception {
+        // given
+        willDoNothing().given(groupService).deleteInvite(any());
+
         // when
         final ResultActions perform =
                 mockMvc.perform(
-                        post("/group/share/" + UUID.randomUUID())
+                        delete("/group/invite")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         toRequestBody(
-                                                new InviteGroupRequest(
-                                                        UUID.randomUUID(), UUID.randomUUID())))
+                                                new DeleteGroupInviteRequest(UUID.randomUUID())))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
@@ -172,7 +192,69 @@ class GroupControllerTest extends RestDocsTest {
 
         // docs
         perform.andDo(print())
-                .andDo(document("post change share", getDocumentRequest(), getDocumentResponse()));
+                .andDo(
+                        document(
+                                "delete group invite",
+                                getDocumentRequest(),
+                                getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("위치 공유 수정 API가 수행되는가")
+    void shareLocation() throws Exception {
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/group/share/" + UUID.randomUUID())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        toRequestBody(
+                                                new InviteGroupRequest(
+                                                        List.of(UUID.randomUUID()),
+                                                        UUID.randomUUID())))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+
+        // then
+        perform.andExpect(status().isNoContent());
+
+        // docs
+        perform.andDo(print())
+                .andDo(
+                        document(
+                                "post share location",
+                                getDocumentRequest(),
+                                getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("위치 공유 수정 API가 수행되는가")
+    void unShareLocation() throws Exception {
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/group/unshare/" + UUID.randomUUID())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        toRequestBody(
+                                                new InviteGroupRequest(
+                                                        List.of(UUID.randomUUID()),
+                                                        UUID.randomUUID())))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+
+        // then
+        perform.andExpect(status().isNoContent());
+
+        // docs
+        perform.andDo(print())
+                .andDo(
+                        document(
+                                "post unshare location",
+                                getDocumentRequest(),
+                                getDocumentResponse()));
     }
 
     @Test
@@ -191,7 +273,8 @@ class GroupControllerTest extends RestDocsTest {
                                 .content(
                                         toRequestBody(
                                                 new InviteGroupRequest(
-                                                        UUID.randomUUID(), UUID.randomUUID())))
+                                                        List.of(UUID.randomUUID()),
+                                                        UUID.randomUUID())))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
@@ -213,9 +296,27 @@ class GroupControllerTest extends RestDocsTest {
         List<GroupInfoResponse> responseList = new ArrayList<>();
 
         GroupInfoResponse response1 =
-                new GroupInfoResponse(UUID.randomUUID(), leaderId, "BLACK_PINK", "I_LOVE_YOU_LOSE");
+                new GroupInfoResponse(
+                        UUID.randomUUID(),
+                        leaderId,
+                        "BLACK_PINK",
+                        "I_LOVE_YOU_LOSE",
+                        List.of(
+                                new MemberResponse(
+                                        UUID.randomUUID(), "LISA", "http://hojiniSelfieWow"),
+                                new MemberResponse(
+                                        UUID.randomUUID(), "제니", "http://hojiniSelfieAwesome")));
         GroupInfoResponse response2 =
-                new GroupInfoResponse(UUID.randomUUID(), leaderId, "LE_SSERAFIM", "I_LOVE_YOU_채원");
+                new GroupInfoResponse(
+                        UUID.randomUUID(),
+                        leaderId,
+                        "LE_SSERAFIM",
+                        "I_LOVE_YOU_채원",
+                        List.of(
+                                new MemberResponse(
+                                        UUID.randomUUID(), "카즈하", "http://hojiniSelfieGreat"),
+                                new MemberResponse(
+                                        UUID.randomUUID(), "사쿠라", "http://hojiniSelfieGoat")));
 
         responseList.add(response1);
         responseList.add(response2);
@@ -235,5 +336,56 @@ class GroupControllerTest extends RestDocsTest {
 
         perform.andDo(print())
                 .andDo(document("get myGroups", getDocumentRequest(), getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("자신의 위치가 정상적으로 수정되는가")
+    void updateLocation() throws Exception {
+        // given
+        willDoNothing().given(groupService).updateLocation(any());
+
+        // when`
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/group/location")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        toRequestBody(
+                                                new UpdateLocationRequest(
+                                                        UUID.randomUUID(), 0.0, 0.0)))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isNoContent());
+
+        perform.andDo(print())
+                .andDo(
+                        document(
+                                "post update group member location",
+                                getDocumentRequest(),
+                                getDocumentResponse()));
+    }
+
+    @Test
+    @DisplayName("그룹 탈퇴가 수행되는가")
+    void outGroup() throws Exception {
+        // given
+        willDoNothing().given(groupService).outGroup(any());
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        post("/group/out")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toRequestBody(new OutGroupRequest(UUID.randomUUID())))
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isNoContent());
+
+        perform.andDo(print())
+                .andDo(document("post out group", getDocumentRequest(), getDocumentResponse()));
     }
 }

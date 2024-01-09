@@ -17,11 +17,23 @@ operation::get plan[snippets='http-request,http-response']
 === 계획 삭제
 operation::delete plan[snippets='http-request,http-response']
 
+=== 계획 초대
+operation::post invite plan[snippets='http-request,http-response']
+
 === 계획 참여
 operation::post join plan[snippets='http-request,http-response']
+
+=== 계획 초대 삭제
+operation::delete plan invite[snippets='http-request,http-response']
 
 === 계획 탈퇴
 operation::post out plan[snippets='http-request,http-response']
 
 === 본인이 속한 계획 전체 조회
 operation::get all plans[snippets='http-request,http-response']
+
+=== 계획 수정
+operation::post update plan[snippets='http-request,http-response']
+
+=== 계획 날짜 수정
+operation::post update plan day[snippets='http-request,http-response']
