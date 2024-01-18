@@ -26,14 +26,16 @@ import lombok.Setter;
 
 import org.hibernate.annotations.Where;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Entity
-@Where(clause = "deleted_at is null")
+@Where(clause = "deleted_at is null and friend_status != 'EXPIRED'")
 @EntityListeners(AuditListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Friend implements Auditable {
+
     @Id
     @GeneratedValue(generator = "uuid2")
     @Column(name = "id", columnDefinition = "BINARY(16)")
@@ -70,6 +72,36 @@ public class Friend implements Auditable {
     }
 
     public void updateStatus(final FriendStatus friendStatus) {
-        this.friendStatus = friendStatus;
+        if (isRequestNotExpired()) {
+            this.friendStatus = friendStatus;
+            return;
+        }
+        this.friendStatus = FriendStatus.EXPIRED;
+    }
+
+    public Member getFriendMember(final Member loginMember) {
+        if (isFromMember(loginMember)) {
+            return this.toMember;
+        }
+        return this.fromMember;
+    }
+
+    private boolean isFromMember(final Member member) {
+        return this.fromMember.getId().equals(member.getId());
+    }
+
+    public void checkExpire() {
+        if (isRequestNotExpired()) {
+            return;
+        }
+        this.friendStatus = FriendStatus.EXPIRED;
+    }
+
+    private boolean isRequestNotExpired() {
+        return this.baseTime == null
+                || (this.friendStatus == FriendStatus.REQUESTED
+                        && this.baseTime
+                                .getCreatedAt()
+                                .isAfter(LocalDateTime.now().minusMinutes(30L)));
     }
 }

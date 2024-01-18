@@ -28,4 +28,9 @@ public class MemberController {
             @RequestParam(name = "nickname") String nickname) {
         return ResponseEntity.ok(memberService.getMemberByNickname(nickname));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<MemberResponse> getMemberByJwt() {
+        return ResponseEntity.ok(memberService.getMemberId());
+    }
 }

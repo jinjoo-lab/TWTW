@@ -18,6 +18,7 @@ import com.twtw.backend.domain.plan.dto.request.PlanMemberRequest;
 import com.twtw.backend.domain.plan.dto.request.SavePlanRequest;
 import com.twtw.backend.domain.plan.dto.request.UpdatePlanDayRequest;
 import com.twtw.backend.domain.plan.dto.request.UpdatePlanRequest;
+import com.twtw.backend.domain.plan.dto.response.PlaceDetails;
 import com.twtw.backend.domain.plan.dto.response.PlanDestinationResponse;
 import com.twtw.backend.domain.plan.dto.response.PlanInfoResponse;
 import com.twtw.backend.domain.plan.dto.response.PlanResponse;
@@ -112,7 +113,7 @@ public class PlanService {
                         deviceToken,
                         NotificationTitle.PLAN_REQUEST_TITLE.getName(),
                         NotificationBody.PLAN_REQUEST_BODY.toNotificationBody(planName),
-                        id));
+                        id.toString()));
     }
 
     public void outPlan(PlanMemberRequest request) {
@@ -121,46 +122,35 @@ public class PlanService {
         plan.deleteMember(member);
     }
 
+    @Transactional(readOnly = true)
     public PlanInfoResponse getPlanById(UUID id) {
         Plan plan = getPlanEntity(id);
 
-        return getPlanInfoResponseWithNotJoinedMembers(plan);
-    }
-
-    private PlanInfoResponse getPlanInfoResponseWithNotJoinedMembers(final Plan plan) {
-        GroupInfoResponse groupInfo = groupService.getGroupInfoResponse(plan.getGroup());
-        PlaceClientDetails placeDetails = placeService.getPlaceDetails(plan.getPlace());
-        List<MemberResponse> notJoinedMembers =
-                memberService.getResponsesByMembers(plan.getNotJoinedMembers());
-        String planDay = plan.getPlanDay().format(DATE_TIME_FORMATTER);
-        List<MemberResponse> memberResponses = toMemberResponse(plan);
-
-        return planMapper.toPlanInfoResponse(
-                plan, placeDetails, planDay, groupInfo, memberResponses, notJoinedMembers);
+        return getPlanInfoResponse(plan);
     }
 
     private PlanInfoResponse getPlanInfoResponse(final Plan plan) {
         GroupInfoResponse groupInfo = groupService.getGroupInfoResponse(plan.getGroup());
-        PlaceClientDetails placeDetails = placeService.getPlaceDetails(plan.getPlace());
+        PlaceDetails placeDetails = placeService.getPlaceDetails(plan.getPlace());
+        List<MemberResponse> notJoinedMembers =
+                memberService.getResponsesByMembers(
+                        plan.getNotJoinedMembers(authService.getMemberByJwt()));
         String planDay = plan.getPlanDay().format(DATE_TIME_FORMATTER);
-        List<MemberResponse> memberResponses = toMemberResponse(plan);
+        List<MemberResponse> memberResponses = memberService.getMemberResponses(plan);
 
         return planMapper.toPlanInfoResponse(
-                plan, placeDetails, planDay, groupInfo, memberResponses);
+                plan, placeDetails, planDay, groupInfo, memberResponses, notJoinedMembers);
     }
 
     public void deletePlan(UUID id) {
         planRepository.deleteById(id);
     }
 
-    private List<MemberResponse> toMemberResponse(Plan plan) {
-        return memberService.getMemberResponses(plan);
-    }
-
     public Plan getPlanEntity(UUID id) {
         return planRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
+    @Transactional(readOnly = true)
     public List<PlanInfoResponse> getPlans() {
         final Member member = authService.getMemberByJwt();
         final List<Plan> plans = planRepository.findAllByMember(member);
@@ -199,7 +189,7 @@ public class PlanService {
                         NotificationTitle.DESTINATION_CHANGE_TITLE.getName(),
                         NotificationBody.DESTINATION_CHANGE_BODY.toNotificationBody(
                                 destinationName),
-                        id));
+                        id.toString()));
     }
 
     @Transactional
@@ -220,5 +210,11 @@ public class PlanService {
         Member member = authService.getMemberByJwt();
         Plan plan = getPlanEntity(request.getPlanId());
         plan.deleteInvite(member);
+    }
+
+    public List<PlanInfoResponse> getPlansByGroupId(final UUID groupId) {
+        final Group group = groupService.getGroupEntity(groupId);
+        final List<Plan> plans = group.getGroupPlans();
+        return plans.stream().map(this::getPlanInfoResponse).toList();
     }
 }

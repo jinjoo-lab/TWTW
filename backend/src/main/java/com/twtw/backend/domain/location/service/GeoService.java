@@ -1,30 +1,31 @@
 package com.twtw.backend.domain.location.service;
 
+import com.twtw.backend.domain.group.entity.Group;
 import com.twtw.backend.domain.location.dto.collection.MemberDistances;
 import com.twtw.backend.domain.location.dto.request.LocationRequest;
 import com.twtw.backend.domain.location.dto.response.AverageCoordinate;
 import com.twtw.backend.domain.member.entity.Member;
-import com.twtw.backend.domain.plan.entity.Plan;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class GeoService {
 
-    private static final int CURRENT_LOCATION_INDEX = 0;
+    private static final Distance DEFAULT_DISTANCE = new Distance(0, Metrics.KILOMETERS);
     private final RedisTemplate<String, String> redisTemplate;
 
     public AverageCoordinate saveLocation(
-            final Plan plan, final Member member, final LocationRequest locationRequest) {
-        final String planId = plan.getId().toString();
+            final Group group, final Member member, final LocationRequest locationRequest) {
+        final String planId = group.getId().toString();
         final String memberId = member.getId().toString();
 
         redisTemplate
@@ -34,37 +35,33 @@ public class GeoService {
                         new Point(locationRequest.getLongitude(), locationRequest.getLatitude()),
                         memberId);
 
-        return calculateAverage(collectMemberDistances(planId), planId, memberId);
+        return calculateAverage(collectMemberDistances(planId, group), planId, memberId);
     }
 
-    private MemberDistances collectMemberDistances(final String planId) {
-        return redisTemplate.opsForSet().members(planId).stream()
-                .map(
-                        member ->
-                                redisTemplate
-                                        .opsForGeo()
-                                        .position(planId, member)
-                                        .get(CURRENT_LOCATION_INDEX))
-                .collect(Collectors.collectingAndThen(Collectors.toList(), MemberDistances::new));
+    private MemberDistances collectMemberDistances(final String groupId, final Group group) {
+        final List<Point> points =
+                redisTemplate.opsForGeo().position(groupId, group.getMemberIds());
+        return new MemberDistances(points);
     }
 
     private AverageCoordinate calculateAverage(
-            final MemberDistances memberDistances, final String planId, final String memberId) {
+            final MemberDistances memberDistances, final String groupId, final String memberId) {
 
-        final double averageLongitude = memberDistances.averageLongitude();
-        final double averageLatitude = memberDistances.averageLatitude();
+        final Point averagePoint = memberDistances.getAveragePoint();
+        redisTemplate.opsForGeo().add(groupId, averagePoint, groupId);
 
-        redisTemplate.opsForGeo().add(planId, new Point(averageLongitude, averageLatitude), planId);
+        final Distance distance = distance(groupId, memberId);
 
-        final Double distance = distance(planId, memberId);
-
-        return new AverageCoordinate(averageLongitude, averageLatitude, distance);
+        return new AverageCoordinate(averagePoint.getX(), averagePoint.getY(), distance.getValue());
     }
 
-    private double distance(final String planId, final String memberId) {
-        return redisTemplate
-                .opsForGeo()
-                .distance(planId, memberId, planId, Metrics.KILOMETERS)
-                .getValue();
+    private Distance distance(final String groupId, final String memberId) {
+        final Distance distance =
+                redisTemplate.opsForGeo().distance(groupId, memberId, groupId, Metrics.KILOMETERS);
+
+        if (distance == null) {
+            return DEFAULT_DISTANCE;
+        }
+        return distance;
     }
 }

@@ -48,7 +48,7 @@ public class FriendService {
                         deviceToken,
                         NotificationTitle.FRIEND_REQUEST_TITLE.getName(),
                         NotificationBody.FRIEND_REQUEST_BODY.toNotificationBody(nickname),
-                        id));
+                        id.toString()));
     }
 
     @Transactional
@@ -64,23 +64,33 @@ public class FriendService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
+    @Transactional(readOnly = true)
     public List<FriendResponse> getFriends() {
         final Member loginMember = authService.getMemberByJwt();
-        final List<Friend> friends = friendRepository.findByMember(loginMember);
+        final List<Member> friends =
+                friendRepository.findByMember(loginMember).stream()
+                        .map(friend -> friend.getFriendMember(loginMember))
+                        .toList();
         return friendMapper.toResponses(friends);
     }
 
+    @Transactional(readOnly = true)
     public List<FriendResponse> getFriendsByStatus(final FriendStatus friendStatus) {
         final Member loginMember = authService.getMemberByJwt();
-        final List<Friend> friends =
-                friendRepository.findByMemberAndFriendStatus(loginMember, friendStatus);
+        final List<Member> friends =
+                friendRepository.findByMemberAndFriendStatus(loginMember, friendStatus).stream()
+                        .map(friend -> friend.getFriendMember(loginMember))
+                        .toList();
         return friendMapper.toResponses(friends);
     }
 
+    @Transactional(readOnly = true)
     public List<FriendResponse> getFriendByNickname(final String nickname) {
         final Member loginMember = authService.getMemberByJwt();
-        final List<Friend> friends =
-                friendRepository.findByMemberAndMemberNickname(loginMember, nickname);
+        final List<Member> friends =
+                friendRepository.findByMemberAndMemberNickname(loginMember, nickname).stream()
+                        .map(friend -> friend.getFriendMember(loginMember))
+                        .toList();
         return friendMapper.toResponses(friends);
     }
 }

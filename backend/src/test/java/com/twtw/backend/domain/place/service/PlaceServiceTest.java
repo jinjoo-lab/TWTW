@@ -8,7 +8,6 @@ import com.twtw.backend.domain.place.dto.client.SurroundPlaceRequest;
 import com.twtw.backend.domain.place.dto.client.SurroundPlaceResponse;
 import com.twtw.backend.domain.place.entity.Place;
 import com.twtw.backend.domain.plan.dto.client.MetaDetails;
-import com.twtw.backend.domain.plan.dto.client.PlaceClientDetails;
 import com.twtw.backend.domain.plan.dto.response.PlaceDetails;
 import com.twtw.backend.fixture.place.PlaceDetailsFixture;
 import com.twtw.backend.fixture.place.PlaceEntityFixture;
@@ -56,7 +55,7 @@ class PlaceServiceTest extends LoginTest {
         final Place place = PlaceEntityFixture.FIRST_PLACE.toEntity();
 
         // when
-        final PlaceClientDetails placeDetails = placeService.getPlaceDetails(place);
+        final PlaceDetails placeDetails = placeService.getPlaceDetails(place);
 
         // then
         assertThat(placeDetails.getPlaceName()).isEqualTo(place.getPlaceName());

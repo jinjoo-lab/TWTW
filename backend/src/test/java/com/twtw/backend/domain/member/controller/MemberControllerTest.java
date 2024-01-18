@@ -84,4 +84,28 @@ public class MemberControllerTest extends RestDocsTest {
                                 getDocumentRequest(),
                                 getDocumentResponse()));
     }
+
+    @Test
+    @DisplayName("Member id가 조회되는가")
+    void getMemberId() throws Exception {
+        // given
+        final MemberResponse expected =
+                new MemberResponse(UUID.randomUUID(), "JeongHaeJin39", "http://profileimage");
+        given(memberService.getMemberId()).willReturn(expected);
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        get("/member/me")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+
+        // then
+        perform.andExpect(status().isOk());
+
+        perform.andDo(print())
+                .andDo(document("get member id", getDocumentRequest(), getDocumentResponse()));
+    }
 }

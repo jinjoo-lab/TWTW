@@ -70,13 +70,16 @@ public class FriendQueryRepositoryImpl implements FriendQueryRepository {
                                 .and(
                                         friend.toMember
                                                 .eq(member)
-                                                .and(friend.fromMember.nickname.eq(nickname))
+                                                .and(
+                                                        friend.fromMember.nickname
+                                                                .containsIgnoreCase(nickname))
                                                 .or(
                                                         friend.fromMember
                                                                 .eq(member)
                                                                 .and(
-                                                                        friend.toMember.nickname.eq(
-                                                                                nickname)))))
+                                                                        friend.toMember.nickname
+                                                                                .containsIgnoreCase(
+                                                                                        nickname)))))
                 .fetch();
     }
 }

@@ -17,11 +17,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
 public class StompConfig implements WebSocketMessageBrokerConfigurer {
+
     private final RabbitMQProperties rabbitMQProperties;
 
     @Override
     public void registerStompEndpoints(final StompEndpointRegistry registry) {
-        registry.addEndpoint("/plan").setAllowedOrigins("*");
+        registry.addEndpoint("/location").setAllowedOrigins("*");
     }
 
     @Override

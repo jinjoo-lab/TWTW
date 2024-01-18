@@ -140,6 +140,9 @@ class GroupServiceTest extends LoginTest {
 
         GroupMember groupMember2 = new GroupMember(group2, loginUser);
 
+        groupMember1.acceptInvite();
+        groupMember2.acceptInvite();
+
         Group saveGroup1 = groupRepository.save(group1);
         Group saveGroup2 = groupRepository.save(group2);
 

@@ -12,7 +12,7 @@ spring:
     generate-ddl: true
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         auto_quote_keyword: true
@@ -33,6 +33,16 @@ spring:
       port: 6379
   jackson:
     default-property-inclusion: non_null
+  cloud:
+    gcp:
+      credentials:
+        location: ${CREDENTIALS_LOCATION}
+      storage:
+        credentials:
+          location: ${CREDENTIALS_LOCATION}
+        project-id: ${PROJECT_ID}
+        bucket: ${BUCKET_NAME}
+        storage-url: ${BUCKET_URL}
 management:
   endpoints:
     web:

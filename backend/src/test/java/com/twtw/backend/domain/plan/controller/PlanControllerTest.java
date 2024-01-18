@@ -465,4 +465,103 @@ class PlanControllerTest extends RestDocsTest {
         perform.andDo(print())
                 .andDo(document("post update plan", getDocumentRequest(), getDocumentResponse()));
     }
+
+    @Test
+    @DisplayName("계획 전체 조회 API가 수행되는가")
+    void getPlansByGroupId() throws Exception {
+        // given
+        final List<PlanInfoResponse> expected =
+                List.of(
+                        PlanInfoResponse.builder()
+                                .planId(UUID.randomUUID())
+                                .planMakerId(UUID.randomUUID())
+                                .placeId(UUID.randomUUID())
+                                .name("약속1")
+                                .planDay("2023-12-25 15:30")
+                                .placeDetails(
+                                        new PlaceDetails(
+                                                "카페 온마이마인드",
+                                                "https://place.map.kakao.com/1625295668",
+                                                "경기 안성시 죽산면 죽산초교길 36-4",
+                                                127.420430538256,
+                                                37.0766874564297))
+                                .groupInfo(
+                                        new GroupInfoResponse(
+                                                UUID.randomUUID(),
+                                                UUID.randomUUID(),
+                                                "홍담진",
+                                                "http://someUrlToS3",
+                                                List.of(
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "카즈하",
+                                                                "http://HJ39GOAT"),
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "사쿠라",
+                                                                "http://HJ39"))))
+                                .members(
+                                        List.of(
+                                                new MemberResponse(
+                                                        UUID.randomUUID(),
+                                                        "진호정",
+                                                        "http://HoJin39")))
+                                .build(),
+                        PlanInfoResponse.builder()
+                                .planId(UUID.randomUUID())
+                                .planMakerId(UUID.randomUUID())
+                                .placeId(UUID.randomUUID())
+                                .name("약속2")
+                                .planDay("2023-12-25 15:30")
+                                .placeDetails(
+                                        new PlaceDetails(
+                                                "카페 온마이마인드",
+                                                "https://place.map.kakao.com/1625295668",
+                                                "경기 안성시 죽산면 죽산초교길 36-4",
+                                                127.420430538256,
+                                                37.0766874564297))
+                                .groupInfo(
+                                        new GroupInfoResponse(
+                                                UUID.randomUUID(),
+                                                UUID.randomUUID(),
+                                                "HongDamJin",
+                                                "http://someUrlToS3",
+                                                List.of(
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "카즈하",
+                                                                "http://HJ39"),
+                                                        new MemberResponse(
+                                                                UUID.randomUUID(),
+                                                                "사쿠라",
+                                                                "http://HJ39"))))
+                                .members(
+                                        List.of(
+                                                new MemberResponse(
+                                                        UUID.randomUUID(),
+                                                        "JinHoJeong",
+                                                        "http://HJ39")))
+                                .build());
+
+        given(planService.getPlansByGroupId(any())).willReturn(expected);
+
+        // when
+        final ResultActions perform =
+                mockMvc.perform(
+                        get("/plans/group/" + UUID.randomUUID())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(
+                                        "Authorization",
+                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
+        // then
+        perform.andExpect(status().isOk());
+
+        // docs
+        perform.andDo(print())
+                .andDo(
+                        document(
+                                "get all plans by group",
+                                getDocumentRequest(),
+                                getDocumentResponse()));
+    }
 }

@@ -49,6 +49,7 @@ public class GroupService {
         this.fcmProducer = fcmProducer;
     }
 
+    @Transactional(readOnly = true)
     public GroupInfoResponse getGroupById(UUID groupId) {
         return groupMapper.toGroupInfo(
                 groupRepository.findById(groupId).orElseThrow(EntityNotFoundException::new));
@@ -58,7 +59,7 @@ public class GroupService {
         return groupRepository.findById(groupId).orElseThrow(EntityNotFoundException::new);
     }
 
-    public GroupMember getGroupMemberEntity(UUID groupId, UUID memberId) {
+    private GroupMember getGroupMemberEntity(UUID groupId, UUID memberId) {
         return groupMemberRepository
                 .findByGroupIdAndMemberId(groupId, memberId)
                 .orElseThrow(EntityNotFoundException::new);
@@ -94,7 +95,7 @@ public class GroupService {
     }
 
     private void changeShare(final Consumer<GroupMember> changeShare, final UUID id) {
-        Member member = this.authService.getMemberByJwt();
+        Member member = authService.getMemberByJwt();
         GroupInfoResponse groupInfo = getGroupById(id);
 
         GroupMember groupMember = getGroupMemberEntity(groupInfo.getGroupId(), member.getId());
@@ -103,7 +104,7 @@ public class GroupService {
 
     @Transactional
     public ShareInfoResponse getShare(UUID id) {
-        Member member = this.authService.getMemberByJwt();
+        Member member = authService.getMemberByJwt();
         GroupInfoResponse groupInfo = getGroupById(id);
 
         GroupMember groupMember = getGroupMemberEntity(groupInfo.getGroupId(), member.getId());
@@ -131,7 +132,7 @@ public class GroupService {
                         deviceToken,
                         NotificationTitle.GROUP_REQUEST_TITLE.getName(),
                         NotificationBody.GROUP_REQUEST_BODY.toNotificationBody(groupName),
-                        id));
+                        id.toString()));
     }
 
     public GroupInfoResponse getGroupInfoResponse(Group group) {

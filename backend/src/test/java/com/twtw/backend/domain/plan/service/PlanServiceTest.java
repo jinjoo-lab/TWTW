@@ -93,7 +93,7 @@ class PlanServiceTest extends LoginTest {
 
         // then
         final Plan result = planRepository.findById(planId).orElseThrow();
-        assertThat(result.getPlanMembers()).hasSize(2);
+        assertThat(result.getPlanMembers()).hasSize(1);
     }
 
     @Test

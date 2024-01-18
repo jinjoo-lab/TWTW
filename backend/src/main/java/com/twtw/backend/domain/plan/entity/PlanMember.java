@@ -15,11 +15,12 @@ import lombok.Setter;
 
 import org.hibernate.annotations.Where;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Entity
-@Where(clause = "deleted_at is null")
+@Where(clause = "deleted_at is null and plan_invite_code != 'EXPIRED'")
 @EntityListeners(AuditListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlanMember implements Auditable {
@@ -51,6 +52,14 @@ public class PlanMember implements Auditable {
         this.plan = plan;
         this.member = member;
         this.isPlanMaker = isPlanMaker;
+        initializeIsPlanMaker(isPlanMaker);
+    }
+
+    private void initializeIsPlanMaker(final Boolean isPlanMaker) {
+        if (isPlanMaker) {
+            this.planInviteCode = PlanInviteCode.ACCEPTED;
+            return;
+        }
         this.planInviteCode = PlanInviteCode.REQUESTED;
     }
 
@@ -67,10 +76,34 @@ public class PlanMember implements Auditable {
     }
 
     public void acceptInvite() {
-        this.planInviteCode = PlanInviteCode.ACCEPTED;
+        if (isRequestNotExpired()) {
+            this.planInviteCode = PlanInviteCode.ACCEPTED;
+            return;
+        }
+        remove();
+    }
+
+    private void remove() {
+        this.planInviteCode = PlanInviteCode.EXPIRED;
+        this.plan.remove(this);
+    }
+
+    public void checkExpire() {
+        if (isRequestNotExpired()) {
+            return;
+        }
+        remove();
     }
 
     public String getDeviceTokenValue() {
         return this.member.getDeviceTokenValue();
+    }
+
+    private boolean isRequestNotExpired() {
+        return this.baseTime == null
+                || (this.planInviteCode == PlanInviteCode.REQUESTED
+                        && this.baseTime
+                                .getCreatedAt()
+                                .isAfter(LocalDateTime.now().minusMinutes(30L)));
     }
 }

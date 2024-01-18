@@ -207,11 +207,6 @@ class GroupControllerTest extends RestDocsTest {
                 mockMvc.perform(
                         post("/group/share/" + UUID.randomUUID())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        toRequestBody(
-                                                new InviteGroupRequest(
-                                                        List.of(UUID.randomUUID()),
-                                                        UUID.randomUUID())))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
@@ -236,11 +231,6 @@ class GroupControllerTest extends RestDocsTest {
                 mockMvc.perform(
                         post("/group/unshare/" + UUID.randomUUID())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        toRequestBody(
-                                                new InviteGroupRequest(
-                                                        List.of(UUID.randomUUID()),
-                                                        UUID.randomUUID())))
                                 .header(
                                         "Authorization",
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));

@@ -117,4 +117,18 @@ public class Group implements Auditable {
     public void deleteInvite(final Member member) {
         this.groupMembers.removeIf(groupMember -> groupMember.isSameMember(member));
     }
+
+    public boolean hasMember(final Member member) {
+        return this.groupMembers.stream().anyMatch(groupMember -> groupMember.isSameMember(member));
+    }
+
+    public void removeMember(final GroupMember groupMember) {
+        this.groupMembers.remove(groupMember);
+    }
+
+    public String[] getMemberIds() {
+        return this.groupMembers.stream()
+                .map(groupMember -> groupMember.getMember().getId().toString())
+                .toArray(String[]::new);
+    }
 }
