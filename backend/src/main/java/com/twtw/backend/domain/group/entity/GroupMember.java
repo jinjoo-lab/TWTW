@@ -49,7 +49,9 @@ public class GroupMember implements Auditable {
 
     @Embedded private Coordinate coordinate;
 
-    private Boolean share;
+    private Boolean isShare;
+
+    private Boolean isSharedOnce;
 
     @Enumerated(EnumType.STRING)
     private GroupInviteCode groupInviteCode;
@@ -62,17 +64,22 @@ public class GroupMember implements Auditable {
     public GroupMember(Group group, Member member) {
         this.group = group;
         this.member = member;
-        this.share = true;
+        this.isShare = false;
+        this.isSharedOnce = false;
         member.addGroupMember(this);
         this.groupInviteCode = GroupInviteCode.REQUESTED;
     }
 
     public void share() {
-        this.share = true;
+        this.isShare = true;
     }
 
     public void unShare() {
-        this.share = false;
+        this.isShare = false;
+    }
+
+    public void shareOnce() {
+        this.isSharedOnce = true;
     }
 
     public void acceptInvite() {
@@ -94,14 +101,14 @@ public class GroupMember implements Auditable {
     }
 
     public Coordinate getCoordinate() {
-        if (share) {
+        if (isShare) {
             return coordinate;
         }
         return Coordinate.empty();
     }
 
     public void updateCoordinate(final Double longitude, final Double latitude) {
-        if (share) {
+        if (isShare) {
             this.coordinate = new Coordinate(longitude, latitude);
         }
     }

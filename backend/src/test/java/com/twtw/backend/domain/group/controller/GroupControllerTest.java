@@ -14,10 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.twtw.backend.domain.group.dto.request.*;
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
-import com.twtw.backend.domain.group.dto.response.ShareInfoResponse;
-import com.twtw.backend.domain.group.dto.response.SimpleGroupInfoResponse;
+import com.twtw.backend.domain.group.dto.response.GroupMemberResponse;
+import com.twtw.backend.domain.group.dto.response.GroupResponse;
 import com.twtw.backend.domain.group.service.GroupService;
-import com.twtw.backend.domain.member.dto.response.MemberResponse;
 import com.twtw.backend.support.docs.RestDocsTest;
 
 import org.junit.jupiter.api.DisplayName;
@@ -47,10 +46,13 @@ class GroupControllerTest extends RestDocsTest {
                         "HDJ",
                         "GROUP-IMAGE",
                         List.of(
-                                new MemberResponse(
-                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie"),
-                                new MemberResponse(
-                                        UUID.randomUUID(), "ZION-T", "http://hojiniSelfie")));
+                                new GroupMemberResponse(
+                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie", true),
+                                new GroupMemberResponse(
+                                        UUID.randomUUID(),
+                                        "ZION-T",
+                                        "http://hojiniSelfie",
+                                        false)));
         given(groupService.getGroupById(UUID.fromString("550e8400-e29b-41d4-a716-446655440000")))
                 .willReturn(expected);
 
@@ -78,10 +80,13 @@ class GroupControllerTest extends RestDocsTest {
                         "HDJ",
                         "GROUP-IMAGE",
                         List.of(
-                                new MemberResponse(
-                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie"),
-                                new MemberResponse(
-                                        UUID.randomUUID(), "ZION-T", "http://hojiniSelfie")));
+                                new GroupMemberResponse(
+                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie", true),
+                                new GroupMemberResponse(
+                                        UUID.randomUUID(),
+                                        "ZION-T",
+                                        "http://hojiniSelfie",
+                                        false)));
         given(groupService.makeGroup(any())).willReturn(expected);
 
         final ResultActions perform =
@@ -107,8 +112,7 @@ class GroupControllerTest extends RestDocsTest {
     @DisplayName("그룹 가입 API가 수행되는가")
     void joinGroup() throws Exception {
         // given
-        final SimpleGroupInfoResponse expected = new SimpleGroupInfoResponse(UUID.randomUUID());
-        given(groupService.joinGroup(any())).willReturn(expected);
+        willDoNothing().given(groupService).joinGroup(any());
 
         // when
         final ResultActions perform =
@@ -121,7 +125,7 @@ class GroupControllerTest extends RestDocsTest {
                                         "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
 
         // then
-        perform.andExpect(status().isOk()).andExpect(jsonPath("$.groupId").isString());
+        perform.andExpect(status().isNoContent());
 
         // docs
         perform.andDo(print())
@@ -139,10 +143,13 @@ class GroupControllerTest extends RestDocsTest {
                         "홍담진",
                         "http://someUrlToS3",
                         List.of(
-                                new MemberResponse(
-                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie"),
-                                new MemberResponse(
-                                        UUID.randomUUID(), "ZION-T", "http://hojiniSelfie")));
+                                new GroupMemberResponse(
+                                        UUID.randomUUID(), "DEAN", "http://hojiniSelfie", true),
+                                new GroupMemberResponse(
+                                        UUID.randomUUID(),
+                                        "ZION-T",
+                                        "http://hojiniSelfie",
+                                        false)));
         given(groupService.inviteGroup(any())).willReturn(expected);
 
         // when
@@ -248,65 +255,17 @@ class GroupControllerTest extends RestDocsTest {
     }
 
     @Test
-    @DisplayName("위치 공유 조회 API가 수행되는가")
-    void getShare() throws Exception {
-        // given
-        final ShareInfoResponse expected =
-                new ShareInfoResponse(UUID.randomUUID(), UUID.randomUUID(), true);
-        given(groupService.getShare(any())).willReturn(expected);
-
-        // when
-        final ResultActions perform =
-                mockMvc.perform(
-                        get("/group/share/" + UUID.randomUUID())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        toRequestBody(
-                                                new InviteGroupRequest(
-                                                        List.of(UUID.randomUUID()),
-                                                        UUID.randomUUID())))
-                                .header(
-                                        "Authorization",
-                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
-
-        // then
-        perform.andExpect(status().isOk()).andExpect(jsonPath("$.share").isBoolean());
-
-        // docs
-        perform.andDo(print())
-                .andDo(document("get share", getDocumentRequest(), getDocumentResponse()));
-    }
-
-    @Test
     @DisplayName("자신의 그룹 정보가 정상적으로 반환되는가")
     void getMyGroups() throws Exception {
         // given
         final UUID leaderId = UUID.randomUUID();
 
-        List<GroupInfoResponse> responseList = new ArrayList<>();
+        List<GroupResponse> responseList = new ArrayList<>();
 
-        GroupInfoResponse response1 =
-                new GroupInfoResponse(
-                        UUID.randomUUID(),
-                        leaderId,
-                        "BLACK_PINK",
-                        "I_LOVE_YOU_LOSE",
-                        List.of(
-                                new MemberResponse(
-                                        UUID.randomUUID(), "LISA", "http://hojiniSelfieWow"),
-                                new MemberResponse(
-                                        UUID.randomUUID(), "제니", "http://hojiniSelfieAwesome")));
-        GroupInfoResponse response2 =
-                new GroupInfoResponse(
-                        UUID.randomUUID(),
-                        leaderId,
-                        "LE_SSERAFIM",
-                        "I_LOVE_YOU_채원",
-                        List.of(
-                                new MemberResponse(
-                                        UUID.randomUUID(), "카즈하", "http://hojiniSelfieGreat"),
-                                new MemberResponse(
-                                        UUID.randomUUID(), "사쿠라", "http://hojiniSelfieGoat")));
+        GroupResponse response1 =
+                new GroupResponse(UUID.randomUUID(), leaderId, "BLACK_PINK", "I_LOVE_YOU_LOSE");
+        GroupResponse response2 =
+                new GroupResponse(UUID.randomUUID(), leaderId, "LE_SSERAFIM", "I_LOVE_YOU_채원");
 
         responseList.add(response1);
         responseList.add(response2);

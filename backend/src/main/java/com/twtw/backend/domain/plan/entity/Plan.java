@@ -3,7 +3,6 @@ package com.twtw.backend.domain.plan.entity;
 import com.twtw.backend.domain.group.entity.Group;
 import com.twtw.backend.domain.group.entity.GroupMember;
 import com.twtw.backend.domain.member.entity.Member;
-import com.twtw.backend.domain.place.entity.CategoryGroupCode;
 import com.twtw.backend.domain.place.entity.Place;
 import com.twtw.backend.domain.plan.exception.PlanMakerNotExistsException;
 import com.twtw.backend.global.audit.AuditListener;
@@ -104,14 +103,12 @@ public class Plan implements Auditable {
             final LocalDateTime planDay,
             final String placeName,
             final String placeUrl,
-            final CategoryGroupCode categoryGroupCode,
             final String roadAddressName,
             final Double longitude,
             final Double latitude) {
         this.name = name;
         this.planDay = planDay;
-        this.place.update(
-                placeName, placeUrl, categoryGroupCode, roadAddressName, longitude, latitude);
+        this.place.update(placeName, placeUrl, roadAddressName, longitude, latitude);
     }
 
     public void updateMemberLocation(

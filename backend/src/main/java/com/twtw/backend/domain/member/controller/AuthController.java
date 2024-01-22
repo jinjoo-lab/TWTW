@@ -10,7 +10,6 @@ import com.twtw.backend.domain.member.service.AuthService;
 
 import jakarta.validation.Valid;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +30,7 @@ public class AuthController {
     @PostMapping("/save")
     public ResponseEntity<AfterLoginResponse> saveMember(
             @RequestBody @Valid MemberSaveRequest memberSaveRequest) {
-        return ResponseEntity.status(HttpStatus.OK).body(authService.saveMember(memberSaveRequest));
+        return ResponseEntity.ok(authService.saveMember(memberSaveRequest));
     }
 
     @GetMapping("/validate")
@@ -42,7 +41,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AfterLoginResponse> afterSocialLogin(
             @RequestBody @Valid OAuthRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(authService.getTokenByOAuth(request));
+        return ResponseEntity.ok(authService.getTokenByOAuth(request));
     }
 
     @PostMapping("/device")

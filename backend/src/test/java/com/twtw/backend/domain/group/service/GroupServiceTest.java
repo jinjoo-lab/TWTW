@@ -6,8 +6,7 @@ import com.twtw.backend.domain.group.dto.request.InviteGroupRequest;
 import com.twtw.backend.domain.group.dto.request.JoinGroupRequest;
 import com.twtw.backend.domain.group.dto.request.MakeGroupRequest;
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
-import com.twtw.backend.domain.group.dto.response.ShareInfoResponse;
-import com.twtw.backend.domain.group.dto.response.SimpleGroupInfoResponse;
+import com.twtw.backend.domain.group.dto.response.GroupResponse;
 import com.twtw.backend.domain.group.entity.Group;
 import com.twtw.backend.domain.group.entity.GroupMember;
 import com.twtw.backend.domain.group.repository.GroupMemberRepository;
@@ -60,10 +59,12 @@ class GroupServiceTest extends LoginTest {
         // when
         JoinGroupRequest request = new JoinGroupRequest(saveGroup.getId());
 
-        SimpleGroupInfoResponse response = groupService.joinGroup(request);
+        groupService.joinGroup(request);
+
+        final Group result = groupRepository.findById(group.getId()).orElseThrow();
 
         // then
-        assertThat(response.getGroupId()).isEqualTo(saveGroup.getId());
+        assertThat(result.getId()).isEqualTo(saveGroup.getId());
     }
 
     @Test
@@ -86,25 +87,6 @@ class GroupServiceTest extends LoginTest {
     }
 
     @Test
-    @DisplayName("위치 공유 정보가 반환되는가")
-    void getShare() {
-        // given
-        Member leader = memberRepository.save(MemberEntityFixture.FIRST_MEMBER.toEntity());
-
-        Group group = new Group("BABY_MONSTER", "YG_OFFICIAL_IMAGE", leader);
-
-        Group saveGroup = groupRepository.save(group);
-
-        group.inviteAll(List.of(loginUser));
-
-        // when
-        ShareInfoResponse response = groupService.getShare(saveGroup.getId());
-
-        // then
-        assertThat(response.getShare()).isTrue();
-    }
-
-    @Test
     @DisplayName("위치 공유를 공개 -> 비공개 변경이 가능한가")
     void changeShare() {
         // given
@@ -124,7 +106,7 @@ class GroupServiceTest extends LoginTest {
                         .orElseThrow();
 
         // then
-        assertThat(result.getShare()).isFalse();
+        assertThat(result.getIsShare()).isFalse();
     }
 
     @Test
@@ -143,11 +125,11 @@ class GroupServiceTest extends LoginTest {
         groupMember1.acceptInvite();
         groupMember2.acceptInvite();
 
-        Group saveGroup1 = groupRepository.save(group1);
-        Group saveGroup2 = groupRepository.save(group2);
+        groupRepository.save(group1);
+        groupRepository.save(group2);
 
         // when
-        List<GroupInfoResponse> responses = groupService.getMyGroups();
+        List<GroupResponse> responses = groupService.getMyGroups();
 
         // then
         assertThat(responses).hasSize(2);

@@ -47,7 +47,7 @@ public class Group implements Auditable {
     @OneToMany(
             mappedBy = "group",
             cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Plan> groupPlans = new ArrayList<>();
+    private List<Plan> plans = new ArrayList<>();
 
     @Setter
     @Embedded
@@ -66,7 +66,7 @@ public class Group implements Auditable {
     }
 
     public void addPlan(final Plan plan) {
-        this.groupPlans.add(plan);
+        this.plans.add(plan);
     }
 
     public void inviteAll(final List<Member> friends) {
@@ -128,7 +128,25 @@ public class Group implements Auditable {
 
     public String[] getMemberIds() {
         return this.groupMembers.stream()
+                .filter(GroupMember::getIsSharedOnce)
                 .map(groupMember -> groupMember.getMember().getId().toString())
                 .toArray(String[]::new);
+    }
+
+    public void join(final Member member) {
+        final GroupMember groupMember = new GroupMember(this, member);
+        groupMember.acceptInvite();
+        this.groupMembers.add(groupMember);
+    }
+
+    public GroupMember getSameMember(final Member member) {
+        return this.groupMembers.stream()
+                .filter(groupMember -> groupMember.isSameMember(member))
+                .findAny()
+                .orElseThrow(IllegalGroupMemberException::new);
+    }
+
+    public void shareOnce(final Member member) {
+        getSameMember(member).shareOnce();
     }
 }

@@ -16,7 +16,6 @@ import com.twtw.backend.domain.plan.dto.client.SearchDestinationRequest;
 import com.twtw.backend.domain.plan.dto.client.SearchDestinationResponse;
 import com.twtw.backend.domain.plan.dto.request.PlanMemberRequest;
 import com.twtw.backend.domain.plan.dto.request.SavePlanRequest;
-import com.twtw.backend.domain.plan.dto.request.UpdatePlanDayRequest;
 import com.twtw.backend.domain.plan.dto.request.UpdatePlanRequest;
 import com.twtw.backend.domain.plan.dto.response.PlaceDetails;
 import com.twtw.backend.domain.plan.dto.response.PlanDestinationResponse;
@@ -146,7 +145,7 @@ public class PlanService {
         planRepository.deleteById(id);
     }
 
-    public Plan getPlanEntity(UUID id) {
+    private Plan getPlanEntity(UUID id) {
         return planRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
@@ -167,7 +166,6 @@ public class PlanService {
                 updatePlanRequest.getPlanDay(),
                 placeName,
                 updatePlanRequest.getPlaceUrl(),
-                updatePlanRequest.getCategoryGroupCode(),
                 updatePlanRequest.getRoadAddressName(),
                 updatePlanRequest.getLongitude(),
                 updatePlanRequest.getLatitude());
@@ -193,12 +191,6 @@ public class PlanService {
     }
 
     @Transactional
-    public void updatePlanDay(final UpdatePlanDayRequest request) {
-        final Plan plan = getPlanEntity(request.getPlanId());
-        plan.updatePlanDay(request.getChangeDay());
-    }
-
-    @Transactional
     public void joinPlan(final PlanMemberRequest request) {
         Member member = authService.getMemberByJwt();
         Plan plan = getPlanEntity(request.getPlanId());
@@ -214,7 +206,7 @@ public class PlanService {
 
     public List<PlanInfoResponse> getPlansByGroupId(final UUID groupId) {
         final Group group = groupService.getGroupEntity(groupId);
-        final List<Plan> plans = group.getGroupPlans();
+        final List<Plan> plans = group.getPlans();
         return plans.stream().map(this::getPlanInfoResponse).toList();
     }
 }

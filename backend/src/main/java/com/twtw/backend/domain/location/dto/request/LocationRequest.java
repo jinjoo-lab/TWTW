@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import org.springframework.data.geo.Point;
+
 import java.util.UUID;
 
 @Getter
@@ -17,4 +19,8 @@ public class LocationRequest {
     @NotBlank private String nickname;
     @NotNull private Double longitude;
     @NotNull private Double latitude;
+
+    public Point toPoint() {
+        return new Point(this.longitude, this.latitude);
+    }
 }

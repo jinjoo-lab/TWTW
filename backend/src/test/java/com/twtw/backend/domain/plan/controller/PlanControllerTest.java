@@ -13,11 +13,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
+import com.twtw.backend.domain.group.dto.response.GroupMemberResponse;
 import com.twtw.backend.domain.member.dto.response.MemberResponse;
 import com.twtw.backend.domain.place.entity.CategoryGroupCode;
 import com.twtw.backend.domain.plan.dto.request.PlanMemberRequest;
 import com.twtw.backend.domain.plan.dto.request.SavePlanRequest;
-import com.twtw.backend.domain.plan.dto.request.UpdatePlanDayRequest;
 import com.twtw.backend.domain.plan.dto.request.UpdatePlanRequest;
 import com.twtw.backend.domain.plan.dto.response.PlaceDetails;
 import com.twtw.backend.domain.plan.dto.response.PlanDestinationResponse;
@@ -156,10 +156,16 @@ class PlanControllerTest extends RestDocsTest {
                                 "홍담진",
                                 "http://someUrlToS3",
                                 List.of(
-                                        new MemberResponse(
-                                                UUID.randomUUID(), "카즈하", "http://HJ39FaceCamera"),
-                                        new MemberResponse(
-                                                UUID.randomUUID(), "사쿠라", "http://HJ39FaceCam"))),
+                                        new GroupMemberResponse(
+                                                UUID.randomUUID(),
+                                                "카즈하",
+                                                "http://HJ39FaceCamera",
+                                                true),
+                                        new GroupMemberResponse(
+                                                UUID.randomUUID(),
+                                                "사쿠라",
+                                                "http://HJ39FaceCam",
+                                                false))),
                         List.of(new MemberResponse(UUID.randomUUID(), "진호정", "http://HJ39Face")),
                         List.of(
                                 new MemberResponse(
@@ -325,14 +331,16 @@ class PlanControllerTest extends RestDocsTest {
                                                 "홍담진",
                                                 "http://someUrlToS3",
                                                 List.of(
-                                                        new MemberResponse(
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "카즈하",
-                                                                "http://HJ39GOAT"),
-                                                        new MemberResponse(
+                                                                "http://HJ39FaceCamera",
+                                                                true),
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "사쿠라",
-                                                                "http://HJ39"))))
+                                                                "http://HJ39FaceCam",
+                                                                false))))
                                 .members(
                                         List.of(
                                                 new MemberResponse(
@@ -360,14 +368,16 @@ class PlanControllerTest extends RestDocsTest {
                                                 "HongDamJin",
                                                 "http://someUrlToS3",
                                                 List.of(
-                                                        new MemberResponse(
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "카즈하",
-                                                                "http://HJ39"),
-                                                        new MemberResponse(
+                                                                "http://HJ39FaceCamera",
+                                                                true),
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "사쿠라",
-                                                                "http://HJ39"))))
+                                                                "http://HJ39FaceCam",
+                                                                false))))
                                 .members(
                                         List.of(
                                                 new MemberResponse(
@@ -392,37 +402,6 @@ class PlanControllerTest extends RestDocsTest {
         // docs
         perform.andDo(print())
                 .andDo(document("get all plans", getDocumentRequest(), getDocumentResponse()));
-    }
-
-    @Test
-    @DisplayName("계획 날짜 업데이트 API가 수행되는가")
-    void updatePlanDay() throws Exception {
-        // given
-        willDoNothing().given(planService).updatePlanDay(any());
-
-        // when
-        final ResultActions perform =
-                mockMvc.perform(
-                        post("/plans/day")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(
-                                        toRequestBody(
-                                                new UpdatePlanDayRequest(
-                                                        UUID.randomUUID(),
-                                                        LocalDateTime.of(2023, 12, 25, 13, 30))))
-                                .header(
-                                        "Authorization",
-                                        "Bearer wefa3fsdczf32.gaoiuergf92.gb5hsa2jgh"));
-        // then
-        perform.andExpect(status().isNoContent());
-
-        // docs
-        perform.andDo(print())
-                .andDo(
-                        document(
-                                "post update plan day",
-                                getDocumentRequest(),
-                                getDocumentResponse()));
     }
 
     @Test
@@ -492,14 +471,16 @@ class PlanControllerTest extends RestDocsTest {
                                                 "홍담진",
                                                 "http://someUrlToS3",
                                                 List.of(
-                                                        new MemberResponse(
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "카즈하",
-                                                                "http://HJ39GOAT"),
-                                                        new MemberResponse(
+                                                                "http://HJ39FaceCamera",
+                                                                true),
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "사쿠라",
-                                                                "http://HJ39"))))
+                                                                "http://HJ39FaceCam",
+                                                                false))))
                                 .members(
                                         List.of(
                                                 new MemberResponse(
@@ -527,14 +508,16 @@ class PlanControllerTest extends RestDocsTest {
                                                 "HongDamJin",
                                                 "http://someUrlToS3",
                                                 List.of(
-                                                        new MemberResponse(
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "카즈하",
-                                                                "http://HJ39"),
-                                                        new MemberResponse(
+                                                                "http://HJ39FaceCamera",
+                                                                true),
+                                                        new GroupMemberResponse(
                                                                 UUID.randomUUID(),
                                                                 "사쿠라",
-                                                                "http://HJ39"))))
+                                                                "http://HJ39FaceCam",
+                                                                false))))
                                 .members(
                                         List.of(
                                                 new MemberResponse(

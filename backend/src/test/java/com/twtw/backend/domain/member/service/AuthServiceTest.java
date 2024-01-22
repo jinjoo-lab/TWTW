@@ -9,7 +9,6 @@ import com.twtw.backend.domain.member.entity.AuthStatus;
 import com.twtw.backend.domain.member.entity.AuthType;
 import com.twtw.backend.domain.member.entity.Member;
 import com.twtw.backend.domain.member.repository.MemberRepository;
-import com.twtw.backend.domain.member.repository.RefreshTokenRepository;
 import com.twtw.backend.fixture.member.MemberEntityFixture;
 import com.twtw.backend.support.database.DatabaseTest;
 import com.twtw.backend.support.exclude.ExcludeTest;
@@ -26,8 +25,6 @@ public class AuthServiceTest extends ExcludeTest {
 
     @Autowired private MemberRepository memberRepository;
 
-    @Autowired private RefreshTokenRepository refreshTokenRepository;
-
     @Test
     @DisplayName("Kakao 회원 가입이 수행되는가")
     void saveMemberKakao() {
@@ -43,7 +40,7 @@ public class AuthServiceTest extends ExcludeTest {
         AfterLoginResponse response = authService.saveMember(kakaoRequest);
 
         // then
-        assertThat(response.getStatus().equals(AuthStatus.SIGNIN)).isTrue();
+        assertThat(response.getStatus()).isEqualTo(AuthStatus.SIGNIN);
     }
 
     @Test

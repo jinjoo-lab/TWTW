@@ -2,12 +2,11 @@ package com.twtw.backend.domain.group.service;
 
 import com.twtw.backend.domain.group.dto.request.*;
 import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
-import com.twtw.backend.domain.group.dto.response.ShareInfoResponse;
-import com.twtw.backend.domain.group.dto.response.SimpleGroupInfoResponse;
+import com.twtw.backend.domain.group.dto.response.GroupMemberResponse;
+import com.twtw.backend.domain.group.dto.response.GroupResponse;
 import com.twtw.backend.domain.group.entity.Group;
 import com.twtw.backend.domain.group.entity.GroupMember;
 import com.twtw.backend.domain.group.mapper.GroupMapper;
-import com.twtw.backend.domain.group.repository.GroupMemberRepository;
 import com.twtw.backend.domain.group.repository.GroupRepository;
 import com.twtw.backend.domain.member.entity.Member;
 import com.twtw.backend.domain.member.service.AuthService;
@@ -28,7 +27,6 @@ import java.util.function.Consumer;
 @Service
 public class GroupService {
     private final GroupRepository groupRepository;
-    private final GroupMemberRepository groupMemberRepository;
     private final AuthService authService;
     private final MemberService memberService;
     private final GroupMapper groupMapper;
@@ -36,13 +34,11 @@ public class GroupService {
 
     public GroupService(
             GroupRepository groupRepository,
-            GroupMemberRepository groupMemberRepository,
             AuthService authService,
             MemberService memberService,
             GroupMapper groupMapper,
             FcmProducer fcmProducer) {
         this.groupRepository = groupRepository;
-        this.groupMemberRepository = groupMemberRepository;
         this.authService = authService;
         this.memberService = memberService;
         this.groupMapper = groupMapper;
@@ -51,37 +47,32 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public GroupInfoResponse getGroupById(UUID groupId) {
+        final Group group =
+                groupRepository.findById(groupId).orElseThrow(EntityNotFoundException::new);
         return groupMapper.toGroupInfo(
-                groupRepository.findById(groupId).orElseThrow(EntityNotFoundException::new));
+                group, groupMapper.toGroupMemberResponseList(group.getGroupMembers()));
     }
 
     public Group getGroupEntity(UUID groupId) {
         return groupRepository.findById(groupId).orElseThrow(EntityNotFoundException::new);
     }
 
-    private GroupMember getGroupMemberEntity(UUID groupId, UUID memberId) {
-        return groupMemberRepository
-                .findByGroupIdAndMemberId(groupId, memberId)
-                .orElseThrow(EntityNotFoundException::new);
-    }
-
     @Transactional
     public GroupInfoResponse makeGroup(MakeGroupRequest groupDto) {
-        Member member = authService.getMemberByJwt();
-        Group group = groupMapper.toGroupEntity(groupDto, member);
+        final Member member = authService.getMemberByJwt();
+        final Group group = groupRepository.save(groupMapper.toGroupEntity(groupDto, member));
+        final List<GroupMemberResponse> groupMemberResponses =
+                groupMapper.toGroupMemberResponseList(group.getGroupMembers());
 
-        return groupMapper.toGroupInfo(groupRepository.save(group));
+        return groupMapper.toGroupInfo(group, groupMemberResponses);
     }
 
     @Transactional
-    public SimpleGroupInfoResponse joinGroup(JoinGroupRequest joinGroupRequest) {
+    public void joinGroup(JoinGroupRequest joinGroupRequest) {
         Member member = authService.getMemberByJwt();
-        GroupMember groupMember =
-                getGroupMemberEntity(joinGroupRequest.getGroupId(), member.getId());
 
-        groupMember.acceptInvite();
-
-        return new SimpleGroupInfoResponse(groupMember.getGroupId());
+        final Group group = getGroupEntity(joinGroupRequest.getGroupId());
+        group.join(member);
     }
 
     @Transactional
@@ -98,18 +89,10 @@ public class GroupService {
         Member member = authService.getMemberByJwt();
         GroupInfoResponse groupInfo = getGroupById(id);
 
-        GroupMember groupMember = getGroupMemberEntity(groupInfo.getGroupId(), member.getId());
+        final Group group = getGroupEntity(groupInfo.getGroupId());
+
+        GroupMember groupMember = group.getSameMember(member);
         changeShare.accept(groupMember);
-    }
-
-    @Transactional
-    public ShareInfoResponse getShare(UUID id) {
-        Member member = authService.getMemberByJwt();
-        GroupInfoResponse groupInfo = getGroupById(id);
-
-        GroupMember groupMember = getGroupMemberEntity(groupInfo.getGroupId(), member.getId());
-
-        return groupMapper.toShareInfo(groupMember);
     }
 
     @Transactional
@@ -123,7 +106,10 @@ public class GroupService {
         final UUID id = group.getId();
         friends.forEach(friend -> sendNotification(friend.getDeviceTokenValue(), groupName, id));
 
-        return groupMapper.toGroupInfo(group);
+        final List<GroupMemberResponse> groupMemberResponses =
+                groupMapper.toGroupMemberResponseList(group.getGroupMembers());
+
+        return groupMapper.toGroupInfo(group, groupMemberResponses);
     }
 
     private void sendNotification(final String deviceToken, final String groupName, final UUID id) {
@@ -136,18 +122,20 @@ public class GroupService {
     }
 
     public GroupInfoResponse getGroupInfoResponse(Group group) {
-        return groupMapper.toGroupInfo(group);
+        final List<GroupMemberResponse> groupMemberResponses =
+                groupMapper.toGroupMemberResponseList(group.getGroupMembers());
+        return groupMapper.toGroupInfo(group, groupMemberResponses);
     }
 
     @Transactional(readOnly = true)
-    public List<GroupInfoResponse> getMyGroups() {
+    public List<GroupResponse> getMyGroups() {
         Member loginMember = authService.getMemberByJwt();
 
         if (loginMember.hasNoGroupMember()) {
             return List.of();
         }
 
-        return groupMapper.toMyGroupsInfo(loginMember.getGroupMembers());
+        return groupMapper.toGroupResponses(loginMember.getGroupMembers());
     }
 
     @Transactional
