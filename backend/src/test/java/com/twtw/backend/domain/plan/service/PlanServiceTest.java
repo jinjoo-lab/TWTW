@@ -23,6 +23,7 @@ import com.twtw.backend.support.service.LoginTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -73,6 +74,7 @@ class PlanServiceTest extends LoginTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("계획 참여가 수행되는가")
     void joinPlan() {
         // given
@@ -98,6 +100,7 @@ class PlanServiceTest extends LoginTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("계획 나가기가 수행되는가") // TODO: 계획에 1명 있는데 나가는 경우 생각해보기
     void outPlan() {
         // given
@@ -161,6 +164,7 @@ class PlanServiceTest extends LoginTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("수정이 수행되는가")
     void updatePlan() {
         // given

@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @DatabaseTest
 @DisplayName("AuthService의 ")
-public class AuthServiceTest extends ExcludeTest {
+class AuthServiceTest extends ExcludeTest {
 
     @Autowired private AuthService authService;
 

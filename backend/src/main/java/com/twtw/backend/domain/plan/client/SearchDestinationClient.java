@@ -6,6 +6,10 @@ import com.twtw.backend.domain.plan.dto.client.SearchDestinationResponse;
 import com.twtw.backend.global.client.KakaoMapClient;
 import com.twtw.backend.global.properties.KakaoProperties;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,6 +18,7 @@ import org.springframework.web.util.UriBuilder;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 @Component
 public class SearchDestinationClient
         extends KakaoMapClient<SearchDestinationRequest, SearchDestinationResponse> {
@@ -27,6 +32,7 @@ public class SearchDestinationClient
     }
 
     @Override
+    @CircuitBreaker(name = "backend-a", fallbackMethod = "fallback")
     public SearchDestinationResponse request(final SearchDestinationRequest request) {
         return webClient
                 .get()
@@ -37,6 +43,11 @@ public class SearchDestinationClient
                 .bodyToMono(SearchDestinationResponse.class)
                 .blockOptional()
                 .orElseGet(SearchDestinationResponse::new);
+    }
+
+    public SearchDestinationResponse fallback(final Exception e) {
+        log.error("SearchDestinationClient fallback", e);
+        return SearchDestinationResponse.onError();
     }
 
     private URI getUri(final SearchDestinationRequest request, final UriBuilder uriBuilder) {

@@ -18,6 +18,7 @@ import com.twtw.backend.support.service.LoginTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -87,6 +88,7 @@ class GroupServiceTest extends LoginTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("위치 공유를 공개 -> 비공개 변경이 가능한가")
     void changeShare() {
         // given

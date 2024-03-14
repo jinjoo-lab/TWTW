@@ -46,8 +46,6 @@ class MemberRepositoryTest extends RepositoryTest {
 
         // when
         memberRepository.deleteById(memberId);
-        em.flush();
-        em.clear();
 
         // then
         assertThat(memberRepository.findById(memberId)).isEmpty();

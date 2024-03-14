@@ -16,6 +16,7 @@ import com.twtw.backend.support.service.LoginTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -69,6 +70,7 @@ class FriendServiceTest extends LoginTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("친구 목록 조회가 수행되는가")
     void getFriends() {
         // given
@@ -106,6 +108,7 @@ class FriendServiceTest extends LoginTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("닉네임을 통한 친구 조회가 수행되는가")
     void getFriendByNickname() {
         // given
