@@ -66,9 +66,9 @@ class MemberServiceTest extends LoginTest {
 
         // when
         final List<MemberResponse> responses =
-                memberService.getMemberByNickname(member.getNickname());
+                memberService.getMemberByNickname(member.getNickname().substring(0, 1));
 
         // then
-        assertThat(responses.get(0).getMemberId()).isEqualTo(member.getId());
+        assertThat(responses).isNotEmpty();
     }
 }

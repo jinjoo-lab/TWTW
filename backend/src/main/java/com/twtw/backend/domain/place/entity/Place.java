@@ -1,21 +1,13 @@
 package com.twtw.backend.domain.place.entity;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.twtw.backend.global.audit.AuditListener;
 import com.twtw.backend.global.audit.Auditable;
 import com.twtw.backend.global.audit.BaseTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import org.hibernate.annotations.Where;
 
@@ -27,10 +19,10 @@ import java.util.UUID;
 @EntityListeners(AuditListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Place implements Auditable {
+
     @Id
-    @GeneratedValue(generator = "uuid2")
     @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    private UUID id = UlidCreator.getMonotonicUlid().toUuid();
 
     @Column(nullable = false)
     private String placeName;

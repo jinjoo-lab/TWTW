@@ -9,9 +9,9 @@ import com.twtw.backend.domain.group.dto.response.GroupInfoResponse;
 import com.twtw.backend.domain.group.dto.response.GroupResponse;
 import com.twtw.backend.domain.group.entity.Group;
 import com.twtw.backend.domain.group.entity.GroupMember;
-import com.twtw.backend.domain.group.repository.GroupMemberRepository;
 import com.twtw.backend.domain.group.repository.GroupRepository;
 import com.twtw.backend.domain.member.entity.Member;
+import com.twtw.backend.domain.member.repository.MemberRepository;
 import com.twtw.backend.fixture.member.MemberEntityFixture;
 import com.twtw.backend.support.service.LoginTest;
 
@@ -24,11 +24,10 @@ import java.util.List;
 
 @DisplayName("GroupService의")
 class GroupServiceTest extends LoginTest {
+
     @Autowired private GroupService groupService;
-
     @Autowired private GroupRepository groupRepository;
-
-    @Autowired private GroupMemberRepository groupMemberRepository;
+    @Autowired private MemberRepository memberRepository;
 
     @Test
     @DisplayName("makeGroup이 성공적으로 수행되는가")
@@ -102,10 +101,9 @@ class GroupServiceTest extends LoginTest {
 
         // when
         groupService.unShareLocation(saveGroup.getId());
-        GroupMember result =
-                groupMemberRepository
-                        .findByGroupIdAndMemberId(saveGroup.getId(), loginUser.getId())
-                        .orElseThrow();
+
+        final GroupMember result =
+                groupRepository.findById(saveGroup.getId()).orElseThrow().getSameMember(loginUser);
 
         // then
         assertThat(result.getIsShare()).isFalse();

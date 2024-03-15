@@ -1,5 +1,7 @@
 package com.twtw.backend.domain.deadletter;
 
+import com.twtw.backend.domain.notification.dto.NotificationRequest;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -20,7 +22,7 @@ public class DeadLetterConsumer {
     }
 
     @RabbitListener(queues = "deadletter.queue")
-    public void handleDeadLetterMessage(final String message) {
+    public void handleDeadLetterMessage(final NotificationRequest message) {
         log.error("Dead letter received: {}", message);
         webClient
                 .post()

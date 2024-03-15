@@ -27,8 +27,6 @@ class GroupRepositoryTest extends RepositoryTest {
 
     @Autowired private MemberRepository memberRepository;
 
-    @Autowired private GroupMemberRepository groupMemberRepository;
-
     @Test
     @DisplayName("Group이 정상적으로 저장되는가")
     void makeGroup() {
@@ -66,9 +64,7 @@ class GroupRepositoryTest extends RepositoryTest {
         final Group saveGroup = groupRepository.save(group);
         // when
         GroupMember result =
-                groupMemberRepository
-                        .findByGroupIdAndMemberId(saveGroup.getId(), member1.getId())
-                        .orElseThrow();
+                groupRepository.findById(saveGroup.getId()).orElseThrow().getSameMember(member1);
 
         // then
         assertThat(result.getGroup().getId()).isEqualTo(saveGroup.getId());

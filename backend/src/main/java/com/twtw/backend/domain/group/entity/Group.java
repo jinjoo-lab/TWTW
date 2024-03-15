@@ -1,5 +1,6 @@
 package com.twtw.backend.domain.group.entity;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.twtw.backend.domain.group.exception.IllegalGroupMemberException;
 import com.twtw.backend.domain.member.entity.Member;
 import com.twtw.backend.domain.plan.entity.Plan;
@@ -7,14 +8,7 @@ import com.twtw.backend.global.audit.AuditListener;
 import com.twtw.backend.global.audit.Auditable;
 import com.twtw.backend.global.audit.BaseTime;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import lombok.*;
 
@@ -30,10 +24,10 @@ import java.util.UUID;
 @EntityListeners(AuditListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Group implements Auditable {
+
     @Id
-    @GeneratedValue(generator = "uuid2")
-    @Column(name = "id", columnDefinition = "BINARY(16)")
-    private UUID id;
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID id = UlidCreator.getMonotonicUlid().toUuid();
 
     private String name;
     private String groupImage;

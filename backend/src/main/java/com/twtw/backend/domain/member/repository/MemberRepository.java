@@ -3,27 +3,27 @@ package com.twtw.backend.domain.member.repository;
 import com.twtw.backend.domain.member.entity.AuthType;
 import com.twtw.backend.domain.member.entity.Member;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface MemberRepository extends JpaRepository<Member, UUID> {
+@Repository
+public interface MemberRepository {
+    List<Member> findAllByNickname(final String nickname);
 
-    @Query(
-            value =
-                    "SELECT m FROM Member m WHERE upper(m.nickname) LIKE upper(concat('%',"
-                            + " :nickname, '%'))")
-    List<Member> findAllByNicknameContainingIgnoreCase(@Param("nickname") String nickname);
+    List<Member> findAllByNicknameContainingIgnoreCase(final String nickname);
 
-    @Query(
-            "SELECT m FROM Member m WHERE m.oauthInfo.clientId = :oAuthId AND"
-                    + " m.oauthInfo.authType = :authType")
-    Optional<Member> findByOAuthIdAndAuthType(
-            @Param("oAuthId") String oAuthId, @Param("authType") AuthType authType);
+    Optional<Member> findByOAuthIdAndAuthType(final String oAuthId, final AuthType authType);
 
-    boolean existsByNickname(String nickname);
+    boolean existsByNickname(final String nickname);
+
+    Member save(final Member member);
+
+    Optional<Member> findById(final UUID id);
+
+    List<Member> findAllByIds(final List<UUID> friendMemberIds);
+
+    void deleteById(final UUID memberId);
 }

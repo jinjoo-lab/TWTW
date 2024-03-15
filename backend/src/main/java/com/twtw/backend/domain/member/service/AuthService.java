@@ -122,7 +122,10 @@ public class AuthService {
     }
 
     public String getRefreshTokenValue(String tokenKey) {
-        return refreshTokenRepository.getReferenceById(tokenKey).getTokenValue();
+        return refreshTokenRepository
+                .findByTokenKey(tokenKey)
+                .orElseThrow(EntityNotFoundException::new)
+                .getTokenValue();
     }
 
     public TokenDto saveRefreshToken(Authentication authentication, String userName) {

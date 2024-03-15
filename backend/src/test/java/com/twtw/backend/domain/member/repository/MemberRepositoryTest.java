@@ -8,8 +8,6 @@ import com.twtw.backend.domain.member.entity.Member;
 import com.twtw.backend.fixture.member.MemberEntityFixture;
 import com.twtw.backend.support.repository.RepositoryTest;
 
-import jakarta.persistence.EntityManager;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +18,6 @@ import java.util.UUID;
 class MemberRepositoryTest extends RepositoryTest {
 
     @Autowired private MemberRepository memberRepository;
-
-    @Autowired private EntityManager em;
 
     @Test
     @DisplayName("PK를 통한 저장/조회가 성공하는가?")
