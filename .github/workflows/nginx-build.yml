@@ -1,8 +1,10 @@
 name: TWTW Nginx Build
 on:
   push:
+    branches:
+      - 'master'
     paths:
-      - ./nginx
+      - '**.conf'
 defaults:
   run:
     shell: bash
@@ -21,5 +23,5 @@ jobs:
 
     - name: Nginx Build and Push
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/twtw-nginx:latest ./nginx
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/twtw-nginx:latest .
         docker push ${{ secrets.DOCKER_USERNAME }}/twtw-nginx:latest
