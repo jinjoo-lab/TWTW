@@ -17,6 +17,6 @@ public abstract class ExcludeTest {
 
     @BeforeEach
     void setUp() {
-        doNothing().when(fcmProducer).sendNotification(any());
+        doNothing().when(fcmProducer).sendNotification(any(), any());
     }
 }

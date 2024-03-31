@@ -33,6 +33,6 @@ public abstract class LoginTest {
         loginUser = memberRepository.save(MemberEntityFixture.LOGIN_MEMBER.toEntity());
         when(authService.getMemberByJwt()).thenReturn(loginUser);
         when(authService.getMemberIdValue()).thenReturn(loginUser.getId().toString());
-        doNothing().when(fcmProducer).sendNotification(any());
+        doNothing().when(fcmProducer).sendNotification(any(), any());
     }
 }
